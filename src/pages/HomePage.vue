@@ -18,6 +18,10 @@
             <span class="hcard-badge">Live data</span>
           </div>
           <div class="hcard-body">
+            <div v-if="heroLoading" class="hcard-loading">Loading…</div>
+            <div v-else-if="heroError" class="hcard-err">{{ heroError }}</div>
+            <div v-else-if="!heroTop.length" class="hcard-loading">No preview schools yet.</div>
+            <template v-else>
             <div
               v-for="(l, i) in heroTop"
               :key="l.id"
@@ -26,16 +30,17 @@
             >
               <span class="hre">{{ l.state_id === '1' ? '☀️' : '🌉' }}</span>
               <div class="hri">
-                <div class="hrn">{{ l.name }}</div>
-                <div class="hrs">{{ l.suburb }} · {{ l.state_id === '1' ? 'QLD' : 'NSW' }} · {{ l.remoteness }}</div>
+                <div class="hrn">{{ l.name || '—' }}</div>
+                <div class="hrs">{{ l.suburb || '—' }} · {{ l.state_id === '1' ? 'QLD' : 'NSW' }} · {{ l.remoteness || '—' }}</div>
               </div>
               <div class="hrr">
-                <div class="hrsc" :style="{ color: cols[i] }">${{ Math.round(l.annual_incentive / 1000) }}k</div>
+                <div class="hrsc" :style="{ color: cols[i] }">${{ Math.round(heroInc(l) / 1000) }}k</div>
                 <div class="hrbar">
-                  <div class="hrbar-f" :style="{ width: Math.min(100, Math.round(l.annual_incentive / 300)) + '%', background: cols[i] }"></div>
+                  <div class="hrbar-f" :style="{ width: Math.min(100, Math.round(heroInc(l) / 300)) + '%', background: cols[i] }"></div>
                 </div>
               </div>
             </div>
+            </template>
           </div>
           <div class="hcard-note">
             <div class="hcard-note-lbl">✦ Two tabs, one decision</div>
@@ -99,9 +104,27 @@
 
 <script setup>
 import { useExplorer } from '../composables/useExplorer.js'
+import { toNum } from '../utils/locationFields.js'
 
 defineEmits(['navigate', 'view-lifestyle'])
 
-const { heroTop } = useExplorer()
+const { heroTop, heroLoading, heroError } = useExplorer()
 const cols = ['var(--green-d)', 'var(--blue)', 'var(--orange-d)', 'var(--purple)']
+
+function heroInc(l) {
+  return toNum(l?.annual_incentive, 0)
+}
 </script>
+
+<style scoped>
+.hcard-loading,
+.hcard-err {
+  padding: 16px;
+  font-size: 0.8rem;
+  color: var(--ink3);
+  text-align: center;
+}
+.hcard-err {
+  color: #b91c1c;
+}
+</style>

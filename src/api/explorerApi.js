@@ -1,21 +1,36 @@
 /**
- * Explorer REST API — paths relative to same origin (/api/explorer/…).
+ * Explorer REST API — same-origin `/api/explorer/*` (Vite proxies to FastAPI).
+ *
+ * Locations query params (FastAPI):
+ *   state, employee_type, remoteness_ids, search, sort, page, page_size
  */
 
-function normalizeLocationsPayload(json) {
-  const items = json.items ?? json.data ?? json.locations ?? []
-  const total = json.total ?? json.meta?.total ?? json.count ?? items.length
-  return { items: Array.isArray(items) ? items : [], total: Number(total) || 0 }
+function pickTotal(json) {
+  const t =
+    json.total ??
+    json.total_count ??
+    json.totalCount ??
+    json.count ??
+    json.meta?.total ??
+    json.pagination?.total
+  return Number(t)
 }
 
-function normalizeHeroPayload(json) {
-  if (Array.isArray(json)) return json
-  return json.items ?? json.data ?? json.locations ?? []
+export function normalizeLocationsPayload(json) {
+  const items = json.items ?? json.results ?? json.data ?? json.locations ?? []
+  const arr = Array.isArray(items) ? items : []
+  const total = pickTotal(json)
+  return { items: arr, total: Number.isFinite(total) ? total : arr.length }
 }
 
-function normalizeComparePayload(json) {
+export function normalizeHeroPayload(json) {
   if (Array.isArray(json)) return json
-  return json.items ?? json.data ?? json.locations ?? []
+  return json.items ?? json.results ?? json.data ?? json.locations ?? json.hero ?? []
+}
+
+export function normalizeComparePayload(json) {
+  if (Array.isArray(json)) return json
+  return json.items ?? json.results ?? json.data ?? json.locations ?? json.comparison ?? []
 }
 
 export async function fetchExplorerFilters() {
@@ -24,6 +39,9 @@ export async function fetchExplorerFilters() {
   return r.json()
 }
 
+/**
+ * @param {Record<string, string | number | undefined | null>} params
+ */
 export async function fetchExplorerLocations(params) {
   const u = new URL('/api/explorer/locations', window.location.origin)
   Object.entries(params).forEach(([k, v]) => {
@@ -36,8 +54,8 @@ export async function fetchExplorerLocations(params) {
   return normalizeLocationsPayload(json)
 }
 
-export async function fetchExplorerLocation(id) {
-  const r = await fetch(`/api/explorer/locations/${encodeURIComponent(id)}`)
+export async function fetchExplorerLocation(locationId) {
+  const r = await fetch(`/api/explorer/locations/${encodeURIComponent(locationId)}`)
   if (!r.ok) throw new Error(`location ${r.status}`)
   return r.json()
 }

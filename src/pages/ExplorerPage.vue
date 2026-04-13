@@ -5,6 +5,8 @@
       <div class="page-sub">Find schools · view incentive packages · jump to lifestyle</div>
     </div>
 
+    <div v-if="filtersError" class="explorer-banner warn">{{ filtersError }}</div>
+
     <!-- ── Compare View ── -->
     <div v-if="showCmp" id="cmp-view">
       <div class="back-row" style="padding:20px 28px 0" @click="closeCompare">
@@ -14,6 +16,7 @@
       <div style="padding:8px 28px 40px;max-width:1060px;margin:0 auto;">
         <div class="cmp-title">Compare Schools</div>
         <div class="cmp-sub-txt">Incentive comparison · green = strongest value</div>
+        <div v-if="compareError" class="explorer-banner err" style="margin-bottom:12px">{{ compareError }}</div>
         <div class="cmp-wrap">
           <table class="cmp-tbl">
             <thead>
@@ -35,19 +38,19 @@
               </tr>
               <tr>
                 <td>Remoteness</td>
-                <td v-for="s in cmpSchools" :key="s.id">{{ s.remoteness }}</td>
+                <td v-for="s in cmpSchools" :key="s.id">{{ s.remoteness || '—' }}</td>
               </tr>
               <tr class="cmp-sec"><td :colspan="cmpSchools.length + 1">💰 Incentives</td></tr>
               <tr>
                 <td>Annual incentive</td>
                 <td v-for="(s, i) in cmpSchools" :key="s.id" :class="bestIncentiveIdx === i ? 'cmp-best' : 'cmp-lo'">
-                  <strong v-if="s.annual_incentive > 0">${{ Math.round(s.annual_incentive).toLocaleString() }}/yr</strong>
+                  <strong v-if="toNum(s.annual_incentive, 0) > 0">${{ Math.round(toNum(s.annual_incentive, 0)).toLocaleString() }}/yr</strong>
                   <span v-else>—</span>
                 </td>
               </tr>
               <tr>
                 <td>Package type</td>
-                <td v-for="s in cmpSchools" :key="s.id">{{ s.inc_label || 'None' }}</td>
+                <td v-for="s in cmpSchools" :key="s.id">{{ s.inc_label || '—' }}</td>
               </tr>
             </tbody>
           </table>
@@ -110,8 +113,15 @@
           <div class="fp-sec">
             <div class="fp-lbl">Employment</div>
             <div class="fp-tiles">
-              <div class="fp-tile" :class="fEmp === 'perm' ? 'sel-perm' : ''" @click="selEmp('perm')"><span class="ti">📋</span>Permanent</div>
-              <div class="fp-tile" :class="fEmp === 'temp' ? 'sel-temp' : ''" @click="selEmp('temp')"><span class="ti">📝</span>Temporary</div>
+              <div
+                v-for="e in empOpts"
+                :key="e.v"
+                class="fp-tile"
+                :class="fEmp === e.v ? (e.v === 'perm' ? 'sel-perm' : e.v === 'temp' ? 'sel-temp' : 'sel-rem') : ''"
+                @click="selEmp(e.v)"
+              >
+                <span class="ti">{{ e.icon }}</span>{{ e.label }}
+              </div>
             </div>
           </div>
           <div class="fp-sec">
@@ -140,6 +150,7 @@
         <div v-if="!searchQ && remSize === 0 && fState === 'both'" style="text-align:center;padding:2.5rem;font-size:0.8rem;color:var(--ink3)">
           Type a school name or suburb to search, or use Filters above.
         </div>
+        <div v-else-if="searchError" class="explorer-banner err">{{ searchError }}</div>
         <template v-else-if="searchTotal > 0 || searchLoading">
           <div class="r-meta">
             <template v-if="searchLoading">Loading…</template>
@@ -150,7 +161,7 @@
               v-for="s in searchListItems"
               :key="s.id"
               :school="s"
-              :is-open="openRow === s.id"
+              :is-open="String(openRow) === String(s.id)"
               :in-cmp="isCmp(s.id)"
               :sort="fSort"
               :emp-type="fEmp"
@@ -230,6 +241,7 @@
             </div>
           </div>
           <div v-else-if="guideStep === 3" key="results">
+            <div v-if="guideError" class="explorer-banner err" style="margin-bottom:10px">{{ guideError }}</div>
             <div class="gq-label">{{ guideLoading ? 'Loading…' : `${guideTotal} school${guideTotal !== 1 ? 's' : ''} matched` }}</div>
             <template v-if="guideTotal > 0 || guideLoading">
               <div class="r-meta" style="margin-top:4px">sorted by {{ sortLabel }}</div>
@@ -238,7 +250,7 @@
                   v-for="s in guideListItems"
                   :key="s.id"
                   :school="s"
-                  :is-open="openRow === s.id"
+                  :is-open="String(openRow) === String(s.id)"
                   :in-cmp="isCmp(s.id)"
                   :sort="fSort"
                   :emp-type="fEmp"
@@ -268,6 +280,7 @@
 <script setup>
 import { ref, computed, nextTick, watch } from 'vue'
 import { useExplorer } from '../composables/useExplorer.js'
+import { toNum } from '../utils/locationFields.js'
 import SchoolRow from '../components/SchoolRow.vue'
 import AppPagination from '../components/AppPagination.vue'
 import CompareTray from '../components/CompareTray.vue'
@@ -284,16 +297,21 @@ const {
   toggleRow, viewLifestyle,
   remSize,
   stateOpts,
+  empOpts,
   remotenessOpts,
+  filtersError,
   loadSearchLocations,
   loadGuideLocations,
   searchListItems,
   searchTotal,
   searchLoading,
+  searchError,
   guideListItems,
   guideTotal,
   guideLoading,
+  guideError,
   compareSchools,
+  compareError,
 } = useExplorer()
 
 const view = ref('entry')
@@ -370,7 +388,7 @@ function goGuidePage(p) {
 const cmpSchools = computed(() => compareSchools.value)
 const bestIncentiveIdx = computed(() => {
   if (!cmpSchools.value.length) return -1
-  const vals = cmpSchools.value.map(s => s.annual_incentive || 0)
+  const vals = cmpSchools.value.map((s) => toNum(s.annual_incentive, 0))
   return vals.indexOf(Math.max(...vals))
 })
 function openCompare() {
@@ -414,3 +432,21 @@ const q3opts = [
   { title: 'Nature & outdoors', icon: '🌿', sub: 'Prioritise areas with parks and reserves' },
 ]
 </script>
+
+<style scoped>
+.explorer-banner {
+  padding: 10px 16px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  margin: 0 24px 12px;
+  max-width: 1060px;
+}
+.explorer-banner.warn {
+  background: var(--orange-s);
+  color: var(--orange-d);
+}
+.explorer-banner.err {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+</style>

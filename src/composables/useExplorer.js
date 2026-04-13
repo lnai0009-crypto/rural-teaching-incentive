@@ -7,11 +7,17 @@ import {
   fetchExplorerCompare,
   fetchExplorerHeroTop,
 } from '../api/explorerApi.js'
+import { normalizeLocationRecord, normalizeLocationList } from '../utils/locationFields.js'
 
+// ── Default filter tiles (used if /filters fails) ──
 const DEFAULT_STATE_OPTS = [
   { v: 'both', icon: '🗺️', label: 'Both' },
   { v: 'qld', icon: '☀️', label: 'QLD' },
   { v: 'nsw', icon: '🌉', label: 'NSW' },
+]
+const DEFAULT_EMP_OPTS = [
+  { v: 'perm', icon: '📋', label: 'Permanent' },
+  { v: 'temp', icon: '📝', label: 'Temporary' },
 ]
 const DEFAULT_REMOTENESS_OPTS = [
   { v: '5', icon: '🔴', label: 'Very Remote' },
@@ -21,59 +27,89 @@ const DEFAULT_REMOTENESS_OPTS = [
   { v: '1', icon: '🔵', label: 'Major Cities' },
 ]
 
+/**
+ * Map GET /api/explorer/filters → UI option rows
+ * Backend: states, employeeTypes, remotenessOptions
+ */
 function mapFiltersPayload(json) {
-  const states = json.states ?? json.state_options ?? []
-  const rem = json.remoteness_categories ?? json.remoteness ?? json.remoteness_options ?? []
+  const states = json.states ?? []
+  const emp = json.employeeTypes ?? json.employee_types ?? []
+  const rem = json.remotenessOptions ?? json.remoteness_options ?? []
+
   const stateOpts = states.length
     ? states.map((s) => ({
-        v: s.value ?? s.v ?? s.id,
+        v: String(s.value ?? s.v ?? s.id ?? s.code ?? ''),
         icon: s.icon ?? '📍',
-        label: s.label ?? s.name ?? String(s.value ?? ''),
+        label: String(s.label ?? s.name ?? s.title ?? ''),
       }))
     : DEFAULT_STATE_OPTS
+
+  const empOpts = emp.length
+    ? emp.map((e) => ({
+        v: String(e.value ?? e.id ?? e.code ?? ''),
+        icon: e.icon ?? '📋',
+        label: String(e.label ?? e.name ?? e.title ?? ''),
+      }))
+    : DEFAULT_EMP_OPTS
+
   const remotenessOpts = rem.length
     ? rem.map((r) => ({
-        v: String(r.id ?? r.remoteness_category_id ?? r.v),
+        v: String(r.id ?? r.remoteness_category_id ?? r.value ?? r.v ?? ''),
         icon: r.icon ?? '📍',
-        label: r.label ?? r.name ?? String(r.id ?? ''),
+        label: String(r.label ?? r.name ?? r.title ?? ''),
       }))
     : DEFAULT_REMOTENESS_OPTS
-  return { stateOpts, remotenessOpts }
+
+  return { stateOpts, empOpts, remotenessOpts }
 }
 
 let filtersPromise = null
 const stateOpts = ref([...DEFAULT_STATE_OPTS])
+const empOpts = ref([...DEFAULT_EMP_OPTS])
 const remotenessOpts = ref([...DEFAULT_REMOTENESS_OPTS])
+const filtersError = ref(null)
 
 function loadFiltersOnce() {
   if (!filtersPromise) {
     filtersPromise = fetchExplorerFilters()
       .then((json) => {
+        filtersError.value = null
         const m = mapFiltersPayload(json)
         stateOpts.value = m.stateOpts
+        empOpts.value = m.empOpts
         remotenessOpts.value = m.remotenessOpts
       })
       .catch((e) => {
-        console.warn('explorer filters fallback', e)
+        console.warn('explorer filters', e)
+        filtersError.value = 'Could not load filter options. Using defaults.'
       })
   }
   return filtersPromise
 }
 
 const heroTop = ref([])
+const heroLoading = ref(false)
+const heroError = ref(null)
 
-let heroLoaded = false
+let heroStarted = false
 function loadHeroTopOnce() {
-  if (heroLoaded) return
-  heroLoaded = true
+  if (heroStarted) return
+  heroStarted = true
+  heroLoading.value = true
+  heroError.value = null
   fetchExplorerHeroTop()
     .then((rows) => {
-      heroTop.value = Array.isArray(rows) ? rows : []
+      const arr = Array.isArray(rows) ? rows : []
+      heroTop.value = normalizeLocationList(arr)
     })
     .catch((e) => {
       console.warn('hero-top', e)
       heroTop.value = []
-      heroLoaded = false
+      heroError.value = 'Could not load top schools.'
+      heroStarted = false
+    })
+    .finally(() => {
+      heroLoading.value = false
     })
 }
 
@@ -93,13 +129,41 @@ const guidePage = ref(1)
 const searchListItems = ref([])
 const searchTotal = ref(0)
 const searchLoading = ref(false)
+const searchError = ref(null)
 
 const guideListItems = ref([])
 const guideTotal = ref(0)
 const guideLoading = ref(false)
+const guideError = ref(null)
 
 const compareSchools = ref([])
 const compareLoading = ref(false)
+const compareError = ref(null)
+
+function sortParamForApi(uiSort) {
+  if (uiSort === 'az') return 'name'
+  return uiSort
+}
+
+function buildLocationQuery({ page, searchText }) {
+  const remoteness_ids = [...fRem].sort().join(',')
+  const params = {
+    page,
+    page_size: PAGE_SIZE,
+    state: fState.value,
+    employee_type: fEmp.value,
+    sort: sortParamForApi(fSort.value),
+  }
+  if (remoteness_ids) params.remoteness_ids = remoteness_ids
+  const t = (searchText || '').trim()
+  if (t) params.search = t
+  return params
+}
+
+function shouldSkipSearchList(searchText) {
+  const t = (searchText || '').trim()
+  return !t && fRem.size === 0 && fState.value === 'both'
+}
 
 // ── Filters ──
 function selState(v) {
@@ -111,7 +175,8 @@ function selEmp(v) {
   currentPage.value = 1
 }
 function toggleRem(v) {
-  fRem.has(v) ? fRem.delete(v) : fRem.add(v)
+  const key = String(v)
+  fRem.has(key) ? fRem.delete(key) : fRem.add(key)
   currentPage.value = 1
 }
 function setSort(v) {
@@ -128,28 +193,9 @@ const filterBadgeCount = computed(() => {
 
 const remSize = computed(() => fRem.size)
 
-function buildLocationQuery({ page, q }) {
-  const remoteness_ids = [...fRem].sort().join(',')
-  const params = {
-    page,
-    per_page: PAGE_SIZE,
-    state: fState.value,
-    employee_type: fEmp.value,
-    sort: fSort.value,
-  }
-  if (remoteness_ids) params.remoteness_ids = remoteness_ids
-  const t = (q || '').trim()
-  if (t) params.q = t
-  return params
-}
-
-function shouldSkipLocationsList(q) {
-  const t = (q || '').trim()
-  return !t && fRem.size === 0 && fState.value === 'both'
-}
-
-async function loadSearchLocations(q) {
-  if (shouldSkipLocationsList(q)) {
+async function loadSearchLocations(searchText) {
+  searchError.value = null
+  if (shouldSkipSearchList(searchText)) {
     searchListItems.value = []
     searchTotal.value = 0
     return
@@ -157,52 +203,57 @@ async function loadSearchLocations(q) {
   searchLoading.value = true
   try {
     const { items, total } = await fetchExplorerLocations(
-      buildLocationQuery({ page: currentPage.value, q })
+      buildLocationQuery({ page: currentPage.value, searchText })
     )
-    searchListItems.value = items
+    searchListItems.value = normalizeLocationList(items)
     searchTotal.value = total
   } catch (e) {
     console.warn('search locations', e)
     searchListItems.value = []
     searchTotal.value = 0
+    searchError.value = 'Could not load schools. Check your connection and try again.'
   } finally {
     searchLoading.value = false
   }
 }
 
 async function loadGuideLocations() {
+  guideError.value = null
   guideLoading.value = true
   try {
     const { items, total } = await fetchExplorerLocations(
-      buildLocationQuery({ page: guidePage.value, q: '' })
+      buildLocationQuery({ page: guidePage.value, searchText: '' })
     )
-    guideListItems.value = items
+    guideListItems.value = normalizeLocationList(items)
     guideTotal.value = total
   } catch (e) {
     console.warn('guide locations', e)
     guideListItems.value = []
     guideTotal.value = 0
+    guideError.value = 'Could not load schools. Try again.'
   } finally {
     guideLoading.value = false
   }
 }
 
-// ── Compare ──
+// ── Compare (max 4) ──
 function toggleCmp(id) {
-  const idx = cmpList.indexOf(id)
+  const key = String(id)
+  const idx = cmpList.findIndex((x) => String(x) === key)
   if (idx > -1) cmpList.splice(idx, 1)
-  else if (cmpList.length < 4) cmpList.push(id)
+  else if (cmpList.length < 4) cmpList.push(key)
 }
 function clearCompare() {
   cmpList.splice(0, cmpList.length)
 }
 function isCmp(id) {
-  return cmpList.includes(id)
+  return cmpList.some((x) => String(x) === String(id))
 }
 
 watch(
   () => [...cmpList],
   async (ids) => {
+    compareError.value = null
     if (!ids.length) {
       compareSchools.value = []
       return
@@ -210,11 +261,13 @@ watch(
     compareLoading.value = true
     try {
       const rows = await fetchExplorerCompare(ids)
-      const byId = new Map(rows.map((r) => [String(r.id), r]))
+      const list = normalizeLocationList(Array.isArray(rows) ? rows : [])
+      const byId = new Map(list.map((r) => [String(r.id), r]))
       compareSchools.value = ids.map((id) => byId.get(String(id))).filter(Boolean)
     } catch (e) {
       console.warn('compare', e)
       compareSchools.value = []
+      compareError.value = 'Could not load comparison.'
     } finally {
       compareLoading.value = false
     }
@@ -222,16 +275,15 @@ watch(
   { deep: true }
 )
 
-// ── Open row ──
 function toggleRow(id) {
-  openRow.value = openRow.value === id ? null : id
+  const k = String(id)
+  openRow.value = openRow.value === k ? null : k
 }
 
-// ── Lifestyle ──
 async function viewLifestyle(id) {
   try {
-    const l = await fetchExplorerLocation(id)
-    insSchool.value = l
+    const raw = await fetchExplorerLocation(id)
+    insSchool.value = normalizeLocationRecord(raw)
     sbsMode.value = false
     return 'insights'
   } catch (e) {
@@ -239,18 +291,22 @@ async function viewLifestyle(id) {
     return null
   }
 }
+
 async function selectIns(id) {
   try {
-    insSchool.value = await fetchExplorerLocation(id)
+    const raw = await fetchExplorerLocation(id)
+    insSchool.value = normalizeLocationRecord(raw)
     sbsMode.value = false
   } catch (e) {
     console.warn('selectIns', e)
   }
 }
+
 function clearIns() {
   insSchool.value = null
   sbsMode.value = false
 }
+
 function toggleSbs() {
   if (cmpList.length < 2) return
   sbsMode.value = !sbsMode.value
@@ -262,13 +318,13 @@ async function searchSchoolsForDropdown(q) {
   try {
     const { items } = await fetchExplorerLocations({
       page: 1,
-      per_page: 8,
+      page_size: 8,
       state: 'both',
       employee_type: 'perm',
-      sort: 'az',
-      q: t,
+      sort: 'name',
+      search: t,
     })
-    return items
+    return normalizeLocationList(items)
   } catch (e) {
     console.warn('school search', e)
     return []
@@ -278,10 +334,13 @@ async function searchSchoolsForDropdown(q) {
 export function useExplorer() {
   loadFiltersOnce()
   loadHeroTopOnce()
+
   return {
     PAGE_SIZE,
     stateOpts,
+    empOpts,
     remotenessOpts,
+    filtersError,
     fState,
     fEmp,
     fRem,
@@ -304,11 +363,14 @@ export function useExplorer() {
     searchListItems,
     searchTotal,
     searchLoading,
+    searchError,
     guideListItems,
     guideTotal,
     guideLoading,
+    guideError,
     compareSchools,
     compareLoading,
+    compareError,
     toggleCmp,
     clearCompare,
     isCmp,
@@ -318,6 +380,8 @@ export function useExplorer() {
     clearIns,
     toggleSbs,
     heroTop,
+    heroLoading,
+    heroError,
     searchSchoolsForDropdown,
   }
 }
