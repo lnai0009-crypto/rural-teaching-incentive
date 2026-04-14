@@ -6,7 +6,7 @@
     <LifestylePage v-else-if="currentPage === 'insights'" @navigate="navigate" />
     <AboutPage v-else-if="currentPage === 'about'" />
   </main>
-  <AppFooter v-if="currentPage !== 'explorer'" @navigate="navigate" />
+  <AppFooter @navigate="navigate" />
 </template>
 
 <script setup>
@@ -27,8 +27,8 @@ function navigate(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-async function handleViewLifestyle(id) {
-  await viewLifestyle(id)
+function handleViewLifestyle(id) {
+  viewLifestyle(id)
   navigate('insights')
 }
 </script>
