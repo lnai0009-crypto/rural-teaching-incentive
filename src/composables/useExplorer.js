@@ -15,10 +15,13 @@ const DEFAULT_STATE_OPTS = [
   { v: 'qld', icon: '☀️', label: 'QLD' },
   { v: 'nsw', icon: '🌉', label: 'NSW' },
 ]
+
 const DEFAULT_EMP_OPTS = [
+  { v: 'both', icon: '🧭', label: 'All roles' },
   { v: 'perm', icon: '📋', label: 'Permanent' },
   { v: 'temp', icon: '📝', label: 'Temporary' },
 ]
+
 const DEFAULT_REMOTENESS_OPTS = [
   { v: '5', icon: '🔴', label: 'Very Remote' },
   { v: '4', icon: '🟠', label: 'Remote' },
@@ -44,13 +47,18 @@ function mapFiltersPayload(json) {
       }))
     : DEFAULT_STATE_OPTS
 
-  const empOpts = emp.length
+  const mappedEmpOpts = emp.length
     ? emp.map((e) => ({
         v: String(e.value ?? e.id ?? e.code ?? ''),
         icon: e.icon ?? '📋',
         label: String(e.label ?? e.name ?? e.title ?? ''),
       }))
-    : DEFAULT_EMP_OPTS
+    : DEFAULT_EMP_OPTS.slice(1)
+
+  const empOpts = [
+    { v: 'both', icon: '🧭', label: 'All roles' },
+    ...mappedEmpOpts.filter((e) => e.v !== 'both'),
+  ]
 
   const remotenessOpts = rem.length
     ? rem.map((r) => ({
@@ -97,6 +105,7 @@ function loadHeroTopOnce() {
   heroStarted = true
   heroLoading.value = true
   heroError.value = null
+
   fetchExplorerHeroTop()
     .then((rows) => {
       const arr = Array.isArray(rows) ? rows : []
@@ -115,7 +124,7 @@ function loadHeroTopOnce() {
 
 // ── Shared reactive state ──
 const fState = ref('both')
-const fEmp = ref('perm')
+const fEmp = ref('both')
 const fRem = reactive(new Set())
 const fSort = ref('inc')
 const cmpList = reactive([])
@@ -147,16 +156,27 @@ function sortParamForApi(uiSort) {
 
 function buildLocationQuery({ page, searchText }) {
   const remoteness_ids = [...fRem].sort().join(',')
+
   const params = {
     page,
     page_size: PAGE_SIZE,
     state: fState.value,
-    employee_type: fEmp.value,
     sort: sortParamForApi(fSort.value),
   }
-  if (remoteness_ids) params.remoteness_ids = remoteness_ids
+
+  if (fEmp.value && fEmp.value !== 'both') {
+    params.employee_type = fEmp.value
+  }
+
+  if (remoteness_ids) {
+    params.remoteness_ids = remoteness_ids
+  }
+
   const t = (searchText || '').trim()
-  if (t) params.search = t
+  if (t) {
+    params.search = t
+  }
+
   return params
 }
 
@@ -169,15 +189,19 @@ function selState(v) {
   fState.value = v
   currentPage.value = 1
 }
+
 function selEmp(v) {
   fEmp.value = v
   currentPage.value = 1
 }
+
 function toggleRem(v) {
   const key = String(v)
-  fRem.has(key) ? fRem.delete(key) : fRem.add(key)
+  if (fRem.has(key)) fRem.delete(key)
+  else fRem.add(key)
   currentPage.value = 1
 }
+
 function setSort(v) {
   fSort.value = v
   currentPage.value = 1
@@ -186,6 +210,7 @@ function setSort(v) {
 const filterBadgeCount = computed(() => {
   let n = 0
   if (fState.value !== 'both') n++
+  if (fEmp.value !== 'both') n++
   if (fRem.size > 0) n++
   return n
 })
@@ -194,11 +219,13 @@ const remSize = computed(() => fRem.size)
 
 async function loadSearchLocations(searchText) {
   searchError.value = null
+
   if (shouldSkipSearchList(searchText)) {
     searchListItems.value = []
     searchTotal.value = 0
     return
   }
+
   searchLoading.value = true
   try {
     const { items, total } = await fetchExplorerLocations(
@@ -219,6 +246,7 @@ async function loadSearchLocations(searchText) {
 async function loadGuideLocations() {
   guideError.value = null
   guideLoading.value = true
+
   try {
     const { items, total } = await fetchExplorerLocations(
       buildLocationQuery({ page: guidePage.value, searchText: '' })
@@ -242,9 +270,11 @@ function toggleCmp(id) {
   if (idx > -1) cmpList.splice(idx, 1)
   else if (cmpList.length < 4) cmpList.push(key)
 }
+
 function clearCompare() {
   cmpList.splice(0, cmpList.length)
 }
+
 function isCmp(id) {
   return cmpList.some((x) => String(x) === String(id))
 }
@@ -253,10 +283,12 @@ watch(
   () => [...cmpList],
   async (ids) => {
     compareError.value = null
+
     if (!ids.length) {
       compareSchools.value = []
       return
     }
+
     compareLoading.value = true
     try {
       const rows = await fetchExplorerCompare(ids)
@@ -314,12 +346,12 @@ function toggleSbs() {
 async function searchSchoolsForDropdown(q) {
   const t = (q || '').trim()
   if (!t) return []
+
   try {
     const { items } = await fetchExplorerLocations({
       page: 1,
       page_size: 8,
       state: 'both',
-      employee_type: 'perm',
       sort: 'name',
       search: t,
     })

@@ -7,14 +7,14 @@
       <div class="hero-content">
         <div class="hero-eyebrow">For Australian Teachers</div>
         <h1 class="hero-h1">Find where you<br><em>belong</em>, not just a job.</h1>
-        <p class="hero-sub">Real incentive data. Real lifestyle metrics. 50 schools across QLD and NSW so you can make the move with confidence.</p>
+        <p class="hero-sub">Real incentive data. Real lifestyle metrics. 147 schools across QLD and NSW so you can make the move with confidence.</p>
         <div class="hero-acts">
           <button class="btn-hero-p" @click="$emit('navigate', 'explorer')">Explore Schools</button>
           <button class="btn-hero-s" @click="$emit('navigate', 'insights')">View Lifestyle Data</button>
         </div>
       </div>
       <div class="hero-stats-bar">
-        <div class="hstat"><div class="hstat-n">50</div><div class="hstat-l">Schools with incentives</div></div>
+        <div class="hstat"><div class="hstat-n">147</div><div class="hstat-l">Schools with incentives</div></div>
         <div class="hstat-sep"></div>
         <div class="hstat"><div class="hstat-n">$30k+</div><div class="hstat-l">Top annual incentive</div></div>
         <div class="hstat-sep"></div>
