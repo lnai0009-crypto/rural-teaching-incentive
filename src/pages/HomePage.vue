@@ -7,14 +7,14 @@
       <div class="hero-content">
         <div class="hero-eyebrow">For Australian Teachers</div>
         <h1 class="hero-h1">Find where you<br><em>belong</em>, not just a job.</h1>
-        <p class="hero-sub">Real incentive data. Real lifestyle metrics. 5,050 schools across QLD and NSW so you can make the move with confidence.</p>
+        <p class="hero-sub">Real incentive data. Real lifestyle metrics. 50 schools across QLD and NSW so you can make the move with confidence.</p>
         <div class="hero-acts">
           <button class="btn-hero-p" @click="$emit('navigate', 'explorer')">Explore Schools</button>
           <button class="btn-hero-s" @click="$emit('navigate', 'insights')">View Lifestyle Data</button>
         </div>
       </div>
       <div class="hero-stats-bar">
-        <div class="hstat"><div class="hstat-n">5,050</div><div class="hstat-l">Schools</div></div>
+        <div class="hstat"><div class="hstat-n">50</div><div class="hstat-l">Schools with incentives</div></div>
         <div class="hstat-sep"></div>
         <div class="hstat"><div class="hstat-n">$30k+</div><div class="hstat-l">Top annual incentive</div></div>
         <div class="hstat-sep"></div>
@@ -143,7 +143,7 @@
             <div class="how-step-body">
               <div class="how-step-num">01</div>
               <div class="how-step-title">Find by incentive</div>
-              <p class="how-step-text">Search 5,050 schools directly or answer 3 guided questions. Filter by state, remoteness, and employment type. Sort by highest package to see which areas pay the most.</p>
+              <p class="how-step-text">Search 50 schools directly or answer 3 guided questions. Filter by state, remoteness, and employment type. Sort by highest package to see which areas pay the most.</p>
               <button class="btn-ghost" @click="$emit('navigate', 'explorer')">Open Explorer</button>
             </div>
           </div>
@@ -215,7 +215,7 @@
         <div class="trust-div"></div>
         <div class="trust-item">
           <div class="trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-          <div class="trust-title">5,050 schools</div>
+          <div class="trust-title">50 schools</div>
           <div class="trust-text">Government, Catholic, and Independent across QLD and NSW</div>
         </div>
         <div class="trust-div"></div>
@@ -238,7 +238,7 @@
       <div class="final-cta-overlay"></div>
       <div class="final-cta-inner">
         <h2>Ready to explore real placements?</h2>
-        <p>Browse 5,050 schools across QLD and NSW. Filter by pay, remoteness, and lifestyle then decide.</p>
+        <p>Browse 50 schools across QLD and NSW. Filter by pay, remoteness, and lifestyle then decide.</p>
         <div class="final-cta-btns">
           <button class="btn-hero-p" @click="$emit('navigate', 'explorer')">Find Schools</button>
           <button class="btn-hero-s" @click="$emit('navigate', 'about')">Learn about the data</button>
