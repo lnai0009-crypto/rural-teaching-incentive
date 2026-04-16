@@ -157,8 +157,12 @@ defineEmits(['navigate'])
 .about-hero-content {
   position: relative;
   z-index: 1;
-  padding: 80px;
-  max-width: 680px;
+  padding: 0 80px;
+  max-width: 820px;
+  margin-top: -40px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .about-eyebrow {

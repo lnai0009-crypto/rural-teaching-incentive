@@ -294,6 +294,9 @@ defineEmits(['navigate', 'view-lifestyle'])
   padding: 0 80px;
   max-width: 820px;
   margin-top: -40px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .hero-eyebrow {
@@ -325,7 +328,7 @@ defineEmits(['navigate', 'view-lifestyle'])
   max-width: 540px;
 }
 
-.hero-acts { display: flex; gap: 14px; flex-wrap: wrap; }
+.hero-acts { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
 .btn-hero-p {
   padding: 16px 32px;
