@@ -376,15 +376,16 @@ defineEmits(['navigate', 'view-lifestyle'])
 
 /* TOP AREAS */
 /* SNAPSHOT */
-.snapshot { background: var(--bg); padding: 88px 0; border-bottom: 1px solid var(--b); }
-.snapshot-inner { padding: 0 80px; }
-.section-header { margin-bottom: 40px; }
+.snapshot { background: var(--bg); padding: 88px 24px; border-bottom: 1px solid var(--b); }
+.snapshot-inner { padding: 0 24px; max-width: 1200px; margin: 0 auto; }
+.section-header { margin-bottom: 40px; text-align: center;}
 .section-header.centered { text-align: center; }
 .section-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px; display: inline-block; }
 .section-header h2 { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 900; line-height: 1.12; margin-bottom: 10px; }
 .section-header p { font-size: 0.96rem; color: var(--ink2); }
+.snapshot .section-header { text-align: center; }
 
-.snap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+.snap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; width: 100%; }
 
 .snap-card { background: var(--s); border: 1px solid var(--b); border-radius: 14px; padding: 24px; transition: box-shadow 0.18s; }
 .snap-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.07); }
