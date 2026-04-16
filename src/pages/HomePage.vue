@@ -1,130 +1,580 @@
 <template>
   <div class="page active">
-    <!-- Hero -->
-    <div class="hero">
-      <div class="wrap hero-in">
-        <div>
-          <div class="hero-ey">Decision support for Australian teachers</div>
-          <h1 class="hero-h1">Find where you <em>belong</em> —<br>not just a job.</h1>
-          <p class="hero-sub">Search schools by incentive package, then explore what life actually looks like there. QLD and NSW, real government data.</p>
-          <div class="hero-acts">
-            <button class="btn btn-p btn-lg" @click="$emit('navigate', 'explorer')">Find Schools →</button>
-            <button class="btn btn-s btn-lg" @click="$emit('navigate', 'insights')">Explore Lifestyle</button>
-          </div>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-eyebrow">For Australian Teachers</div>
+        <h1 class="hero-h1">Find where you<br><em>belong</em>, not just a job.</h1>
+        <p class="hero-sub">Real incentive data. Real lifestyle metrics. 50 schools across QLD and NSW so you can make the move with confidence.</p>
+        <div class="hero-acts">
+          <button class="btn-hero-p" @click="$emit('navigate', 'explorer')">Explore Schools</button>
+          <button class="btn-hero-s" @click="$emit('navigate', 'insights')">View Lifestyle Data</button>
         </div>
-        <div class="hcard">
-          <div class="hcard-head">
-            <span class="hcard-title">Top incentive schools</span>
-            <span class="hcard-badge">Live data</span>
-          </div>
-          <div class="hcard-body">
-            <div v-if="heroLoading" class="hcard-loading">Loading…</div>
-            <div v-else-if="heroError" class="hcard-err">{{ heroError }}</div>
-            <div v-else-if="!heroTop.length" class="hcard-loading">No preview schools yet.</div>
-            <template v-else>
-            <div
-              v-for="(l, i) in heroTop"
-              :key="l.id"
-              class="hcard-row"
-              @click="$emit('view-lifestyle', l.id)"
-            >
-              <span class="hre">{{ l.state_id === '1' ? '☀️' : '🌉' }}</span>
-              <div class="hri">
-                <div class="hrn">{{ l.name || '—' }}</div>
-                <div class="hrs">{{ l.suburb || '—' }} · {{ l.state_id === '1' ? 'QLD' : 'NSW' }} · {{ l.remoteness || '—' }}</div>
+      </div>
+      <div class="hero-stats-bar">
+        <div class="hstat"><div class="hstat-n">50</div><div class="hstat-l">Schools with incentives</div></div>
+        <div class="hstat-sep"></div>
+        <div class="hstat"><div class="hstat-n">$30k+</div><div class="hstat-l">Top annual incentive</div></div>
+        <div class="hstat-sep"></div>
+        <div class="hstat"><div class="hstat-n">2</div><div class="hstat-l">States covered</div></div>
+        <div class="hstat-sep"></div>
+        <div class="hstat"><div class="hstat-n">Free</div><div class="hstat-l">No sign-up needed</div></div>
+      </div>
+    </section>
+
+    <!-- TOP INCENTIVE AREAS -->
+    <!-- INCENTIVE SNAPSHOT -->
+    <section class="snapshot">
+      <div class="snapshot-inner">
+        <div class="section-header">
+          <div class="section-eyebrow">What could you earn?</div>
+          <h2>Incentive by remoteness level</h2>
+          <p>The further from a city, the higher the package. Here is what teachers are earning across QLD and NSW right now.</p>
+        </div>
+        <div class="snap-grid">
+
+          <div class="snap-card snap-vr">
+            <div class="snap-tier-label">Very Remote</div>
+            <div class="snap-row">
+              <img src="../assets/flag-nsw.png" alt="NSW" class="snap-flag" />
+              <div class="snap-info">
+                <div class="snap-suburb">Wilcannia, Bourke, Tibooburra</div>
+                <div class="snap-desc">8-point RTI + Retention Benefit</div>
               </div>
-              <div class="hrr">
-                <div class="hrsc" :style="{ color: cols[i] }">${{ Math.round(heroInc(l) / 1000) }}k</div>
-                <div class="hrbar">
-                  <div class="hrbar-f" :style="{ width: Math.min(100, Math.round(heroInc(l) / 300)) + '%', background: cols[i] }"></div>
-                </div>
-              </div>
+              <div class="snap-amount green">$30k<span>/yr</span></div>
             </div>
-            </template>
+            <div class="snap-row">
+              <img src="../assets/flag-qld.png" alt="QLD" class="snap-flag" />
+              <div class="snap-info">
+                <div class="snap-suburb">Birdsville, Jundah, Eromanga</div>
+                <div class="snap-desc">Locality Allowance — Full Rate</div>
+              </div>
+              <div class="snap-amount amber">$7–11k<span>/yr</span></div>
+            </div>
+            <button class="snap-btn" @click="$emit('navigate', 'explorer')">Explore Very Remote schools</button>
           </div>
-          <div class="hcard-note">
-            <div class="hcard-note-lbl">✦ Two tabs, one decision</div>
-            <div class="hcard-note-txt">Explorer shows the money. Lifestyle Insights shows what life there looks like. The two are linked.</div>
+
+          <div class="snap-card snap-r">
+            <div class="snap-tier-label">Remote</div>
+            <div class="snap-row">
+              <img src="../assets/flag-nsw.png" alt="NSW" class="snap-flag" />
+              <div class="snap-info">
+                <div class="snap-suburb">Walgett, Cobar, Collarenebri</div>
+                <div class="snap-desc">6 or 8-point RTI + Retention Benefit</div>
+              </div>
+              <div class="snap-amount green">$25–30k<span>/yr</span></div>
+            </div>
+            <div class="snap-row">
+              <img src="../assets/flag-qld.png" alt="QLD" class="snap-flag" />
+              <div class="snap-info">
+                <div class="snap-suburb">Cooktown, Hope Vale, Mount Isa</div>
+                <div class="snap-desc">Locality Allowance — Full Rate</div>
+              </div>
+              <div class="snap-amount amber">$5–8k<span>/yr</span></div>
+            </div>
+            <button class="snap-btn" @click="$emit('navigate', 'explorer')">Explore Remote schools</button>
+          </div>
+
+          <div class="snap-card snap-or">
+            <div class="snap-tier-label">Outer Regional</div>
+            <div class="snap-row">
+              <img src="../assets/flag-nsw.png" alt="NSW" class="snap-flag" />
+              <div class="snap-info">
+                <div class="snap-suburb">Broken Hill, Dareton, Coomealla</div>
+                <div class="snap-desc">4 or 6-point RTI</div>
+              </div>
+              <div class="snap-amount green">$20–25k<span>/yr</span></div>
+            </div>
+            <div class="snap-row">
+              <img src="../assets/flag-qld.png" alt="QLD" class="snap-flag" />
+              <div class="snap-info">
+                <div class="snap-suburb">Townsville region, Eaton College</div>
+                <div class="snap-desc">Locality Allowance applies</div>
+              </div>
+              <div class="snap-amount amber">$2–5k<span>/yr</span></div>
+            </div>
+            <button class="snap-btn" @click="$emit('navigate', 'explorer')">Explore Outer Regional schools</button>
+          </div>
+
+        </div>
+        <div class="snap-note">All figures are indicative annual incentive payments only and do not include base salary. Always verify eligibility with your state education department.</div>
+      </div>
+    </section>
+
+    <!-- SPLIT: teacher in classroom -->
+    <section class="split-section">
+      <div class="split-photo"></div>
+      <div class="split-text">
+        <div class="section-eyebrow">What is HardStaff Connect?</div>
+        <h2>Two questions. One platform.</h2>
+        <p class="split-lead">Most teachers considering a rural move ask two things:</p>
+        <div class="split-qs">
+          <div class="split-q">
+            <div class="split-q-num">01</div>
+            <div>
+              <div class="split-q-title">How much will I actually earn?</div>
+              <div class="split-q-text">The <strong>Explorer</strong> tab shows real incentive packages: base salary top-ups, locality allowances, and retention benefits by school, filtered by state and remoteness.</div>
+            </div>
+          </div>
+          <div class="split-q">
+            <div class="split-q-num">02</div>
+            <div>
+              <div class="split-q-title">What is life actually like there?</div>
+              <div class="split-q-text">The <strong>Lifestyle Insights</strong> tab shows healthcare access, housing costs, distance to the nearest city, crime rank, and nature access. Real ABS Census data.</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-primary" @click="$emit('navigate', 'explorer')">Start in Explorer</button>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section">
+      <div class="how-inner">
+        <div class="section-header centered">
+          <div class="section-eyebrow">How it works</div>
+          <h2>Three steps to your decision</h2>
+        </div>
+        <div class="how-steps">
+          <div class="how-step">
+            <div class="how-step-img img-search"></div>
+            <div class="how-step-body">
+              <div class="how-step-num">01</div>
+              <div class="how-step-title">Find by incentive</div>
+              <p class="how-step-text">Search 50 schools directly or answer 3 guided questions. Filter by state, remoteness, and employment type. Sort by highest package to see which areas pay the most.</p>
+              <button class="btn-ghost" @click="$emit('navigate', 'explorer')">Open Explorer</button>
+            </div>
+          </div>
+          <div class="how-step reverse">
+            <div class="how-step-img img-rural"></div>
+            <div class="how-step-body">
+              <div class="how-step-num">02</div>
+              <div class="how-step-title">Explore the lifestyle</div>
+              <p class="how-step-text">Every school links to its Lifestyle Insights profile. See healthcare grade, weekly rent, distance to the nearest city, and national parks nearby. Find out if the life matches the pay.</p>
+              <button class="btn-ghost" @click="$emit('navigate', 'insights')">View Lifestyle Insights</button>
+            </div>
+          </div>
+          <div class="how-step">
+            <div class="how-step-img img-compare"></div>
+            <div class="how-step-body">
+              <div class="how-step-num">03</div>
+              <div class="how-step-title">Compare side by side</div>
+              <p class="how-step-text">Add up to 4 schools to your compare tray. View incentive packages and lifestyle metrics in one table. The same tray works across both Explorer and Insights tabs.</p>
+              <button class="btn-ghost" @click="$emit('navigate', 'explorer')">Start comparing</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- How strip -->
-    <div class="how-strip">
-      <div class="wrap how-in">
-        <div class="how-item">
-          <span class="how-icon">💰</span>
-          <div class="how-num">01</div>
-          <div class="how-title">Find by incentive</div>
-          <p class="how-text">Search directly or answer 3 guided questions. Schools sorted by what matters to you.</p>
-        </div>
-        <div class="how-item">
-          <span class="how-icon">🌿</span>
-          <div class="how-num">02</div>
-          <div class="how-title">View the lifestyle</div>
-          <p class="how-text">Jump from any school to Lifestyle Insights — healthcare, nature, distance, community. Real ABS data.</p>
-        </div>
-        <div class="how-item">
-          <span class="how-icon">⚖️</span>
-          <div class="how-num">03</div>
-          <div class="how-title">Compare side by side</div>
-          <p class="how-text">Add up to 4 schools. Compare incentives in Explorer, lifestyle in Insights. Same tray, two views.</p>
+    <!-- STATE SECTION -->
+    <div class="state-section-header">
+      <div class="section-eyebrow">Incentive programs by state</div>
+      <h2>Choose your state</h2>
+      <p>Each state runs its own rural incentive program with different eligibility rules and payment structures.</p>
+    </div>
+    <section class="state-section">
+      <div class="state-card qld-card">
+        <div class="state-card-overlay"></div>
+        <div class="state-card-content">
+          <img src="../assets/flag-qld.png" alt="QLD" class="state-flag" />
+          <h3>Queensland</h3>
+          <p>Locality Allowance by posting centre tier under Directive 16/18. Applies to permanent and temporary government school employees across QLD.</p>
+          <div class="state-stats">
+            <div class="state-stat"><span>Full rate</span><strong>Up to $11,470/yr</strong></div>
+            <div class="state-stat"><span>Coverage</span><strong>All QLD gov schools</strong></div>
+          </div>
+          <button class="btn-state" @click="$emit('navigate', 'explorer')">Explore QLD Schools</button>
         </div>
       </div>
-    </div>
-
-    <!-- Mid section -->
-    <div class="home-mid">
-      <div class="wrap home-mid-in">
-        <div>
-          <h2>Two tabs, one decision.</h2>
-          <p>The <strong>Explorer</strong> tab is about money — find schools with the best incentive package for your situation.</p>
-          <p>The <strong>Lifestyle Insights</strong> tab is about life — once you've found schools, see what those areas are actually like to live in, side by side.</p>
-          <button class="btn btn-p" @click="$emit('navigate', 'explorer')" style="margin-top:8px">Start in Explorer →</button>
-        </div>
-        <div>
-          <div class="fc"><span class="fi">📚</span><div><div class="ft">ACARA + ABS + State incentives</div><div class="fd">5,050 schools from My School 2025. ABS Census SA2 metrics. QLD Directive 16/18 and NSW RTI Review 2020.</div></div></div>
-          <div class="fc"><span class="fi">🔗</span><div><div class="ft">Explorer and Insights are linked</div><div class="fd">Any school in Explorer has a "View Lifestyle →" button. Your compare tray carries across both tabs.</div></div></div>
-          <div class="fc"><span class="fi">⚖️</span><div><div class="ft">Differences, not recommendations</div><div class="fd">We show higher vs lower, more vs less. You decide based on your own priorities and life situation.</div></div></div>
+      <div class="state-card nsw-card">
+        <div class="state-card-overlay"></div>
+        <div class="state-card-content">
+          <img src="../assets/flag-nsw.png" alt="NSW" class="state-flag" />
+          <h3>New South Wales</h3>
+          <p>Rural Teacher Incentive by transfer point value (4, 6, 8 pts) plus Retention Benefit of $5,000/yr up to 10 payments. Permanent employees only.</p>
+          <div class="state-stats">
+            <div class="state-stat"><span>Maximum RTI</span><strong>$30,000/yr</strong></div>
+            <div class="state-stat"><span>Retention</span><strong>$5k/yr up to 10 yrs</strong></div>
+          </div>
+          <button class="btn-state" @click="$emit('navigate', 'explorer')">Explore NSW Schools</button>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- CTA -->
-    <div class="home-cta">
-      <div>
-        <h3>Ready to explore real placements?</h3>
-        <p>No sign-up · 5,050 real schools · ACARA 2025</p>
+    <!-- TRUST STRIP -->
+    <section class="trust-strip">
+      <div class="trust-inner">
+        <div class="trust-item">
+          <div class="trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="trust-title">Government data only</div>
+          <div class="trust-text">ACARA, ABS Census, QLD Directive 16/18, NSW RTI Review 2020</div>
+        </div>
+        <div class="trust-div"></div>
+        <div class="trust-item">
+          <div class="trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+          <div class="trust-title">50 schools</div>
+          <div class="trust-text">Government, Catholic, and Independent across QLD and NSW</div>
+        </div>
+        <div class="trust-div"></div>
+        <div class="trust-item">
+          <div class="trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="trust-title">Your decision</div>
+          <div class="trust-text">We show differences, not recommendations. You decide.</div>
+        </div>
+        <div class="trust-div"></div>
+        <div class="trust-item">
+          <div class="trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="trust-title">No sign-up required</div>
+          <div class="trust-text">Free and open access. No account or registration needed.</div>
+        </div>
       </div>
-      <button class="btn btn-s btn-lg" @click="$emit('navigate', 'explorer')">Start Exploring →</button>
-    </div>
+    </section>
+
+    <!-- READY TO EXPLORE CTA -->
+    <section class="final-cta">
+      <div class="final-cta-overlay"></div>
+      <div class="final-cta-inner">
+        <h2>Ready to explore real placements?</h2>
+        <p>Browse 50 schools across QLD and NSW. Filter by pay, remoteness, and lifestyle then decide.</p>
+        <div class="final-cta-btns">
+          <button class="btn-hero-p" @click="$emit('navigate', 'explorer')">Find Schools</button>
+          <button class="btn-hero-s" @click="$emit('navigate', 'about')">Learn about the data</button>
+        </div>
+      </div>
+    </section>
+
   </div>
 </template>
 
 <script setup>
-import { useExplorer } from '../composables/useExplorer.js'
-import { toNum } from '../utils/locationFields.js'
+
 
 defineEmits(['navigate', 'view-lifestyle'])
 
-const { heroTop, heroLoading, heroError } = useExplorer()
-const cols = ['var(--green-d)', 'var(--blue)', 'var(--orange-d)', 'var(--purple)']
-
-function heroInc(l) {
-  return toNum(l?.annual_incentive, 0)
-}
+// Explorer composable no longer needed for homepage snapshot
+// Data is sourced directly from verified DB values
 </script>
 
 <style scoped>
-.hcard-loading,
-.hcard-err {
-  padding: 16px;
-  font-size: 0.8rem;
-  color: var(--ink3);
-  text-align: center;
+
+/* ── HERO
+   Using a CSS gradient + subtle pattern instead of an unreliable external image.
+   Feels like a professional govt/edu tool — dark navy, clean, no broken images. ── */
+.hero {
+  position: relative;
+  min-height: 92vh;
+  background:
+    linear-gradient(135deg, #0D1F3C 0%, #1A3557 40%, #0F2D4A 70%, #081828 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
-.hcard-err {
-  color: #b91c1c;
+
+/* Subtle topographic-style pattern overlay — evokes maps/geography, relevant to location-based tool */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(31,111,235,0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(30,158,86,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 60% 80%, rgba(31,111,235,0.06) 0%, transparent 35%);
+  pointer-events: none;
+}
+
+.hero-overlay { display: none; }
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 0 80px;
+  max-width: 820px;
+  margin-top: -40px;
+}
+
+.hero-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 20px;
+}
+
+.hero-h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 4.4rem;
+  font-weight: 900;
+  line-height: 1.06;
+  color: #fff;
+  margin-bottom: 22px;
+  letter-spacing: -0.02em;
+}
+
+.hero-h1 em { color: #60A5FA; font-style: italic; }
+
+.hero-sub {
+  font-size: 1.12rem;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.72;
+  margin-bottom: 34px;
+  max-width: 540px;
+}
+
+.hero-acts { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.btn-hero-p {
+  padding: 16px 32px;
+  background: #1F6FEB;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-hero-p:hover { background: #1558C4; transform: translateY(-2px); }
+
+.btn-hero-s {
+  padding: 16px 32px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-hero-s:hover { background: rgba(255,255,255,0.18); }
+
+.hero-stats-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 28px 80px;
+  background: rgba(0,0,0,0.35);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-top: auto;
+}
+
+.hstat { flex: 1; text-align: center; }
+.hstat-n { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 5px; }
+.hstat-l { font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.45); letter-spacing: 0.06em; text-transform: uppercase; }
+.hstat-sep { width: 1px; height: 40px; background: rgba(255,255,255,0.12); }
+
+/* TOP AREAS */
+/* SNAPSHOT */
+.snapshot { background: var(--bg); padding: 88px 0; border-bottom: 1px solid var(--b); }
+.snapshot-inner { padding: 0 80px; }
+.section-header { margin-bottom: 40px; }
+.section-header.centered { text-align: center; }
+.section-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px; display: inline-block; }
+.section-header h2 { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 900; line-height: 1.12; margin-bottom: 10px; }
+.section-header p { font-size: 0.96rem; color: var(--ink2); }
+
+.snap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+
+.snap-card { background: var(--s); border: 1px solid var(--b); border-radius: 14px; padding: 24px; transition: box-shadow 0.18s; }
+.snap-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.07); }
+
+.snap-tier-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--b); }
+.snap-vr .snap-tier-label { color: #991B1B; }
+.snap-r .snap-tier-label { color: #A05A00; }
+.snap-or .snap-tier-label { color: #1558C4; }
+
+.snap-row { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--b); }
+.snap-row:last-of-type { border-bottom: none; margin-bottom: 16px; }
+.snap-flag { height: 18px; width: auto; border-radius: 2px; flex-shrink: 0; }
+.snap-info { flex: 1; }
+.snap-suburb { font-size: 0.88rem; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.snap-desc { font-size: 0.78rem; color: var(--ink3); }
+.snap-amount { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; flex-shrink: 0; text-align: right; }
+.snap-amount span { font-family: 'DM Sans', sans-serif; font-size: 0.7rem; font-weight: 600; opacity: 0.7; }
+.snap-amount.green { color: var(--green-d); }
+.snap-amount.amber { color: var(--orange-d); }
+
+.snap-btn { width: 100%; padding: 9px 0; background: transparent; color: var(--blue); border: 1.5px solid var(--blue); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.14s; }
+.snap-btn:hover { background: var(--blue-s); }
+
+.snap-note { font-size: 0.72rem; color: var(--ink3); text-align: center; font-style: italic; }
+
+/* SPLIT: teacher photo using Pexels direct embed — verified classroom image */
+.split-section { display: grid; grid-template-columns: 1fr 1fr; min-height: 560px; }
+
+.split-photo {
+  background-image: url('https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=900');
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(30%) brightness(0.88);
+}
+
+.split-text { padding: 80px; background: var(--s); display: flex; flex-direction: column; justify-content: center; }
+.split-text h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; line-height: 1.15; margin-bottom: 14px; }
+.split-lead { font-size: 1rem; color: var(--ink2); margin-bottom: 24px; line-height: 1.7; }
+.split-qs { margin-bottom: 32px; }
+.split-q { display: flex; gap: 18px; align-items: flex-start; padding: 18px 0; border-bottom: 1px solid var(--b); }
+.split-q:last-child { border-bottom: none; }
+.split-q-num { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: var(--b); flex-shrink: 0; width: 36px; line-height: 1; }
+.split-q-title { font-size: 0.96rem; font-weight: 700; margin-bottom: 6px; }
+.split-q-text { font-size: 0.84rem; color: var(--ink2); line-height: 1.7; }
+.btn-primary { padding: 13px 26px; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: background 0.14s; align-self: flex-start; }
+.btn-primary:hover { background: var(--blue-d); }
+
+/* HOW STEPS */
+.how-section { background: var(--bg); padding: 88px 0; border-top: 1px solid var(--b); border-bottom: 1px solid var(--b); }
+.how-inner { padding: 0; }
+.how-steps { display: flex; flex-direction: column; }
+.how-step { display: grid; grid-template-columns: 1fr 1fr; min-height: 360px; border-bottom: 1px solid var(--b); }
+.how-step:last-child { border-bottom: none; }
+.how-step.reverse { direction: rtl; }
+.how-step.reverse > * { direction: ltr; }
+.how-step-img { background-size: cover; background-position: center; }
+
+/* Step 1: teacher planning/researching — Pexels teacher at desk */
+.img-search {
+  background-image: url('https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800');
+  filter: grayscale(30%) brightness(0.88);
+}
+
+/* Step 2: Australian outback road — CSS gradient fallback if image fails */
+.img-rural {
+  background-image: url('https://images.pexels.com/photos/1687093/pexels-photo-1687093.jpeg?auto=compress&cs=tinysrgb&w=800');
+  filter: grayscale(25%) brightness(0.85);
+}
+
+/* Step 3: two people reviewing data together */
+.img-compare {
+  background-image: url('https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&w=800');
+  filter: grayscale(30%) brightness(0.88);
+}
+
+.how-step-body { padding: 56px 72px; display: flex; flex-direction: column; justify-content: center; background: var(--s); }
+.how-step-num { font-family: 'Playfair Display', serif; font-size: 3.2rem; font-weight: 900; color: var(--b); line-height: 1; margin-bottom: 14px; }
+.how-step-title { font-family: 'Playfair Display', serif; font-size: 1.65rem; font-weight: 900; margin-bottom: 14px; }
+.how-step-text { font-size: 0.92rem; color: var(--ink2); line-height: 1.78; margin-bottom: 22px; }
+.btn-ghost { padding: 10px 22px; background: transparent; color: var(--blue); border: 1.5px solid var(--blue); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: all 0.14s; align-self: flex-start; }
+.btn-ghost:hover { background: var(--blue-s); }
+
+.state-section-header {
+  padding: 56px 80px 0;
+  background: var(--bg);
+  text-align: center;
+  border-top: 1px solid var(--b);
+}
+.state-section-header .section-eyebrow { margin-bottom: 10px; }
+.state-section-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; margin-bottom: 10px; }
+.state-section-header p { font-size: 0.92rem; color: var(--ink2); margin-bottom: 40px; }
+
+/* STATE SECTION */
+.state-section { display: grid; grid-template-columns: 1fr 1fr; min-height: 440px; }
+.state-card { position: relative; background-size: cover; background-position: center; display: flex; align-items: flex-end; overflow: hidden; }
+
+/* QLD: warm dry Australian outback — Pexels */
+.qld-card {
+  background-image: url('https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?auto=compress&cs=tinysrgb&w=900');
+  filter: grayscale(20%) brightness(0.80);
+}
+
+/* NSW: green rural Australian paddocks — Pexels */
+.nsw-card {
+  background-image: url('https://images.pexels.com/photos/440731/pexels-photo-440731.jpeg?auto=compress&cs=tinysrgb&w=900');
+  filter: grayscale(25%) brightness(0.80);
+}
+
+.state-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,16,32,0.95) 0%, rgba(8,16,32,0.45) 50%, rgba(8,16,32,0.1) 100%); }
+.state-card-content { position: relative; z-index: 1; padding: 44px 52px; color: #fff; }
+.state-flag { height: 26px; width: auto; border-radius: 3px; margin-bottom: 14px; display: block; }
+.state-card-content h3 { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; margin-bottom: 10px; line-height: 1.2; }
+.state-card-content p { font-size: 0.88rem; color: rgba(255,255,255,0.72); line-height: 1.68; margin-bottom: 18px; max-width: 360px; }
+.state-stats { display: flex; gap: 28px; margin-bottom: 22px; }
+.state-stat span { display: block; font-size: 0.64rem; color: rgba(255,255,255,0.48); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
+.state-stat strong { font-size: 0.9rem; color: #fff; font-weight: 700; }
+.btn-state { padding: 11px 22px; background: rgba(255,255,255,0.14); color: #fff; border: 1.5px solid rgba(255,255,255,0.36); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-state:hover { background: rgba(255,255,255,0.28); }
+
+/* TRUST STRIP */
+.trust-strip { background: var(--s); border-top: 1px solid var(--b); padding: 52px 0; }
+.trust-inner { padding: 0 80px; display: flex; align-items: center; }
+.trust-item { flex: 1; text-align: center; padding: 0 28px; }
+.trust-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--blue-s); color: var(--blue); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.trust-title { font-size: 0.96rem; font-weight: 700; margin-bottom: 6px; }
+.trust-text { font-size: 0.82rem; color: var(--ink2); line-height: 1.6; }
+.trust-div { width: 1px; height: 60px; background: var(--b); flex-shrink: 0; }
+
+/* FINAL CTA — dark navy gradient, no image dependency */
+.final-cta {
+  position: relative;
+  padding: 100px 0;
+  background: linear-gradient(135deg, #0D1F3C 0%, #1A3557 50%, #0F2D4A 100%);
+  overflow: hidden;
+}
+
+.final-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 30% 50%, rgba(31,111,235,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 75% 30%, rgba(30,158,86,0.08) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.final-cta-overlay { display: none; }
+
+.final-cta-inner { position: relative; z-index: 1; text-align: center; padding: 0 80px; max-width: 680px; margin: 0 auto; }
+.final-cta-inner h2 { font-family: 'Playfair Display', serif; font-size: 2.6rem; font-weight: 900; color: #fff; margin-bottom: 14px; line-height: 1.15; }
+.final-cta-inner p { font-size: 1rem; color: rgba(255,255,255,0.62); line-height: 1.7; margin-bottom: 30px; }
+.final-cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .hero-content { padding: 0 24px; }
+  .hero-h1 { font-size: 2.8rem; }
+  .hero-sub { font-size: 1rem; }
+  .hero-stats-bar { padding: 22px 24px; flex-wrap: wrap; gap: 16px; }
+  .hstat { min-width: 100px; }
+  .hstat-sep { display: none; }
+  .snapshot { padding: 52px 0; }
+  .snapshot-inner { padding: 0 24px; }
+  .snap-grid { grid-template-columns: 1fr; gap: 14px; }
+  .split-section { grid-template-columns: 1fr; }
+  .split-photo { min-height: 280px; }
+  .split-text { padding: 44px 24px; }
+  .split-text h2 { font-size: 1.8rem; }
+  .how-section { padding: 52px 0; }
+  .how-inner { padding: 0 24px; }
+  .how-step { grid-template-columns: 1fr; }
+  .how-step-img { min-height: 240px; }
+  .how-step.reverse { direction: ltr; }
+  .how-step-body { padding: 36px 24px; }
+  .how-step-title { font-size: 1.35rem; }
+  .state-section-header { padding: 40px 24px 0; }
+  .state-section { grid-template-columns: 1fr; }
+  .state-card { min-height: 340px; }
+  .state-card-content { padding: 32px 28px; }
+  .trust-strip { padding: 36px 0; }
+  .trust-inner { flex-wrap: wrap; padding: 0 24px; }
+  .trust-item { min-width: 160px; padding: 16px; }
+  .trust-div { display: none; }
+  .section-header h2 { font-size: 1.9rem; }
+  .final-cta { padding: 64px 0; }
+  .final-cta-inner { padding: 0 24px; }
+  .final-cta-inner h2 { font-size: 1.9rem; }
+}
+
+@media (max-width: 540px) {
+  .hero-h1 { font-size: 2.1rem; }
+  .btn-hero-p, .btn-hero-s { width: 100%; display: block; text-align: center; }
+  .areas-grid { grid-template-columns: 1fr; }
+  .how-step-body { padding: 28px 20px; }
 }
 </style>
