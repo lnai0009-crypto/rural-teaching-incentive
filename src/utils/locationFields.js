@@ -46,6 +46,14 @@ export function normalizeLocationRecord(raw) {
     if (lm[key] !== undefined && lm[key] !== null && lm[key] !== '') return lm[key]
     return fb
   }
+  const metricValue = (m) => {
+    if (m === null || m === undefined || m === '') return null
+    if (typeof m === 'object') {
+      const v = m.value
+      return v === null || v === undefined || v === '' ? null : String(v)
+    }
+    return String(m)
+  }
 
   const id = raw.id ?? raw.location_id ?? raw.locationId
   const rid = raw.remoteness_id ?? raw.remoteness_category_id ?? raw.remotenessCategoryId
@@ -77,8 +85,8 @@ export function normalizeLocationRecord(raw) {
     education_count: toNum(pick('education_count'), 0),
     national_parks: toNum(pick('national_parks'), 0),
     nature_reserves: toNum(pick('nature_reserves'), 0),
-    healthcare_grade: pick('healthcare_grade') ?? '—',
-    education_grade: pick('education_grade') ?? '—',
+    healthcare_grade: metricValue(pick('healthcare_grade')),
+    education_grade: metricValue(pick('education_grade')),
     inc_label:
       raw.inc_label ||
       raw.incLabel ||

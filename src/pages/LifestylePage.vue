@@ -78,13 +78,13 @@
           </div>
           <div class="life-card">
             <div class="lc-title">🏥 Healthcare & Safety</div>
-            <div class="lr"><span class="lrk">Healthcare grade</span><span class="lrv"><span class="gbadge" :class="GC[insSchool.healthcare_grade] || 'gd'">{{ insSchool.healthcare_grade || '—' }}</span> {{ insSchool.healthcare_grade || '—' }}</span></div>
+            <div class="lr"><span class="lrk">Healthcare grade</span><span class="lrv"><span class="gbadge" :class="gradeClass(insSchool.healthcare_grade)">{{ gradeText(insSchool.healthcare_grade) }}</span></span></div>
             <div class="lr"><span class="lrk">Facilities</span><span class="lrv" :class="n(insSchool.healthcare_count) > 50 ? 'good' : n(insSchool.healthcare_count) < 10 ? 'warn' : ''">{{ n(insSchool.healthcare_count) }} in area</span></div>
             <div class="lr"><span class="lrk">Crime rank</span><span class="lrv" :class="crimeClass(n(insSchool.crime_rank))">{{ n(insSchool.crime_rank) > 0 ? n(insSchool.crime_rank) + ' / 100' : 'No data' }}</span></div>
           </div>
           <div class="life-card">
             <div class="lc-title">🎓 Education & Nature</div>
-            <div class="lr"><span class="lrk">Education grade</span><span class="lrv"><span class="gbadge" :class="GC[insSchool.education_grade] || 'gd'">{{ insSchool.education_grade || '—' }}</span> {{ insSchool.education_grade || '—' }}</span></div>
+            <div class="lr"><span class="lrk">Education grade</span><span class="lrv"><span class="gbadge" :class="gradeClass(insSchool.education_grade)">{{ gradeText(insSchool.education_grade) }}</span></span></div>
             <div class="lr"><span class="lrk">Schools nearby</span><span class="lrv">{{ n(insSchool.education_count) }} schools</span></div>
             <div class="lr"><span class="lrk">National parks</span><span class="lrv" :class="n(insSchool.national_parks) > 3 ? 'good' : ''">{{ n(insSchool.national_parks) }} parks</span></div>
             <div class="lr"><span class="lrk">Nature reserves</span><span class="lrv">{{ n(insSchool.nature_reserves) }} reserves</span></div>
@@ -154,7 +154,7 @@
               <tr class="sbs-sec"><td :colspan="cmpSchools.length + 1">🏥 Healthcare & Safety</td></tr>
               <tr>
                 <td>Healthcare grade</td>
-                <td v-for="s in cmpSchools" :key="s.id"><span class="gbadge" :class="GC[s.healthcare_grade] || 'gd'">{{ s.healthcare_grade }}</span> {{ s.healthcare_grade }}</td>
+                <td v-for="s in cmpSchools" :key="s.id"><span class="gbadge" :class="gradeClass(s.healthcare_grade)">{{ gradeText(s.healthcare_grade) }}</span></td>
               </tr>
               <tr>
                 <td>Facilities in area</td>
@@ -167,7 +167,7 @@
               <tr class="sbs-sec"><td :colspan="cmpSchools.length + 1">🎓 Education & Nature</td></tr>
               <tr>
                 <td>Education grade</td>
-                <td v-for="s in cmpSchools" :key="s.id"><span class="gbadge" :class="GC[s.education_grade] || 'gd'">{{ s.education_grade }}</span> {{ s.education_grade }}</td>
+                <td v-for="s in cmpSchools" :key="s.id"><span class="gbadge" :class="gradeClass(s.education_grade)">{{ gradeText(s.education_grade) }}</span></td>
               </tr>
               <tr>
                 <td>Schools nearby</td>
@@ -266,5 +266,21 @@ function bestIdx(vals, hi) {
   const ns = vals.map(v => parseFloat(v) || 0)
   const best = hi ? Math.max(...ns) : Math.min(...ns.filter(n => n > 0).concat([0]))
   return ns.indexOf(best)
+}
+
+function gradeValue(g) {
+  if (g === null || g === undefined || g === '') return null
+  if (typeof g === 'object') {
+    const v = g.value
+    return v === null || v === undefined || v === '' ? null : String(v)
+  }
+  return String(g)
+}
+function gradeText(g) {
+  return gradeValue(g) ?? 'No data'
+}
+function gradeClass(g) {
+  const v = gradeValue(g)
+  return v ? (GC[v] || 'gd') : 'gd'
 }
 </script>
