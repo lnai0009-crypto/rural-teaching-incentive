@@ -14,40 +14,45 @@
       <div style="padding:8px 28px 40px;max-width:1060px;margin:0 auto;">
         <div class="cmp-title">Compare Schools</div>
         <div class="cmp-sub-txt">Incentive comparison · green = strongest value</div>
-        <div class="cmp-wrap">
+        <div v-if="compareLoading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <span>Loading comparison…</span>
+        </div>
+        <div v-else-if="compareError" class="error-state">{{ compareError }}</div>
+        <div v-else class="cmp-wrap">
           <table class="cmp-tbl">
             <thead>
               <tr>
                 <th>Factor</th>
-                <th v-for="s in cmpSchools" :key="s.id">
+                <th v-for="s in compareSchools" :key="s.id">
                   {{ s.name }}<br>
                   <span style="font-weight:400;font-size:0.61rem;color:var(--ink3)">{{ s.suburb }} · {{ s.state_id === '1' ? 'QLD' : 'NSW' }}</span>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr class="cmp-sec"><td :colspan="cmpSchools.length + 1">General</td></tr>
+              <tr class="cmp-sec"><td :colspan="compareSchools.length + 1">General</td></tr>
               <tr>
                 <td>State</td>
-                <td v-for="s in cmpSchools" :key="s.id">
+                <td v-for="s in compareSchools" :key="s.id">
                   <span class="chip" :class="s.state_id === '1' ? 'cq' : 'cn'">{{ s.state_id === '1' ? 'QLD' : 'NSW' }}</span>
                 </td>
               </tr>
               <tr>
                 <td>Remoteness</td>
-                <td v-for="s in cmpSchools" :key="s.id">{{ s.remoteness }}</td>
+                <td v-for="s in compareSchools" :key="s.id">{{ s.remoteness }}</td>
               </tr>
-              <tr class="cmp-sec"><td :colspan="cmpSchools.length + 1">Incentives</td></tr>
+              <tr class="cmp-sec"><td :colspan="compareSchools.length + 1">Incentives</td></tr>
               <tr>
                 <td>Annual incentive</td>
-                <td v-for="(s, i) in cmpSchools" :key="s.id" :class="bestIncentiveIdx === i ? 'cmp-best' : 'cmp-lo'">
+                <td v-for="(s, i) in compareSchools" :key="s.id" :class="bestIncentiveIdx === i ? 'cmp-best' : 'cmp-lo'">
                   <strong v-if="s.annual_incentive > 0">${{ Math.round(s.annual_incentive).toLocaleString() }}/yr</strong>
                   <span v-else>—</span>
                 </td>
               </tr>
               <tr>
                 <td>Package type</td>
-                <td v-for="s in cmpSchools" :key="s.id">{{ s.inc_label || 'None' }}</td>
+                <td v-for="s in compareSchools" :key="s.id">{{ s.inc_label || 'None' }}</td>
               </tr>
             </tbody>
           </table>
@@ -109,9 +114,10 @@
         </div>
       </div>
 
+      <!-- Stats -->
       <div class="exp-stats-bar">
         <div class="exp-stat">
-          <span class="es-num">{{ incentiveCount }}</span>
+          <span class="es-num">{{ searchTotal || '—' }}</span>
           <span class="es-lbl">schools with incentives</span>
         </div>
         <div class="exp-stat-div"></div>
@@ -121,7 +127,7 @@
         </div>
         <div class="exp-stat-div"></div>
         <div class="exp-stat">
-          <span class="es-num">${{ topIncentive }}</span>
+          <span class="es-num">{{ topIncentive }}</span>
           <span class="es-lbl">top annual package</span>
         </div>
       </div>
@@ -147,7 +153,6 @@
           </div>
         </div>
       </div>
-
     </div>
 
     <!-- ── Search Path ── -->
@@ -159,7 +164,7 @@
       <div class="srch-row">
         <div class="srch-wrap">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input ref="searchInput" v-model="searchQ" placeholder="Search by school name or suburb…">
+          <input ref="searchInput" v-model="searchQ" placeholder="Search by school name or suburb…" @input="onSearchInput" />
         </div>
         <button class="filter-tog" :class="{ open: filterOpen }" @click="filterOpen = !filterOpen">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
@@ -176,7 +181,7 @@
               <div class="fp-tiles">
                 <div v-for="s in stateOpts" :key="s.v" class="fp-tile"
                   :class="fState === s.v ? 'sel-' + s.v : ''"
-                  @click="selState(s.v)">
+                  @click="onSelState(s.v)">
                   <span class="fp-tile-icon">{{ s.icon }}</span>{{ s.label }}
                 </div>
               </div>
@@ -184,11 +189,10 @@
             <div class="fp-sec">
               <div class="fp-lbl">Employment</div>
               <div class="fp-tiles">
-                <div class="fp-tile" :class="fEmp === 'perm' ? 'sel-perm' : ''" @click="selEmp('perm')">
-                  <span class="fp-tile-icon">📋</span>Permanent
-                </div>
-                <div class="fp-tile" :class="fEmp === 'temp' ? 'sel-temp' : ''" @click="selEmp('temp')">
-                  <span class="fp-tile-icon">📝</span>Temporary
+                <div v-for="e in empOpts" :key="e.v" class="fp-tile"
+                  :class="fEmp === e.v ? 'sel-' + e.v : ''"
+                  @click="onSelEmp(e.v)">
+                  <span class="fp-tile-icon">{{ e.icon }}</span>{{ e.label }}
                 </div>
               </div>
             </div>
@@ -197,7 +201,7 @@
               <div class="fp-tiles">
                 <div v-for="r in remotenessOpts" :key="r.v" class="fp-tile"
                   :class="fRem.has(r.v) ? 'sel-rem' : ''"
-                  @click="toggleRem(r.v)">
+                  @click="onToggleRem(r.v)">
                   <span class="fp-tile-icon">{{ r.icon }}</span>{{ r.label }}
                 </div>
               </div>
@@ -210,22 +214,27 @@
         <span class="sort-lbl">Sort:</span>
         <div v-for="s in sortOpts" :key="s.v" class="sort-pill"
           :class="{ active: fSort === s.v }"
-          @click="setSort(s.v)">
+          @click="onSetSort(s.v)">
           <span class="sort-icon">{{ s.icon }}</span>{{ s.label }}
         </div>
       </div>
 
       <div class="results-zone">
-        <template v-if="searchResults.length">
+        <div v-if="searchLoading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <span>Loading schools…</span>
+        </div>
+        <div v-else-if="searchError" class="error-state">{{ searchError }}</div>
+        <template v-else-if="searchListItems.length">
           <div class="r-meta">
-            <strong>{{ searchResults.length }}</strong> school{{ searchResults.length !== 1 ? 's' : '' }} · sorted by {{ sortLabel }}
+            <strong>{{ searchTotal }}</strong> school{{ searchTotal !== 1 ? 's' : '' }} · sorted by {{ sortLabel }}
           </div>
           <div class="school-list">
             <SchoolRow
-              v-for="s in searchPage"
+              v-for="s in searchListItems"
               :key="s.id"
               :school="s"
-              :is-open="openRow === s.id"
+              :is-open="openRow === String(s.id)"
               :in-cmp="isCmp(s.id)"
               :sort="fSort"
               :emp-type="fEmp"
@@ -234,14 +243,13 @@
               @view-lifestyle="handleViewLifestyle"
             />
           </div>
-          <AppPagination :total="searchResults.length" :page="currentPage" @change="goPage" />
+          <AppPagination :total="searchTotal" :page="currentPage" @change="goPage" />
         </template>
         <div v-else class="search-empty-state">
-          <div class="ses-title">No schools match</div>
-          <div class="ses-sub">Try adjusting your filters or search term.</div>
+          <div class="ses-title">{{ searchQ || remSize > 0 || fState !== 'both' ? 'No schools match' : 'Search for a school' }}</div>
+          <div class="ses-sub">{{ searchQ || remSize > 0 || fState !== 'both' ? 'Try adjusting your filters or search term.' : 'Type a name or suburb, or use filters.' }}</div>
         </div>
       </div>
-
     </div>
 
     <!-- ── Guided Path ── -->
@@ -267,9 +275,7 @@
               <div class="gq-text">Which state are you considering?</div>
               <div class="gq-opts">
                 <div v-for="opt in q1opts" :key="opt.title" class="gq-opt" :class="{ sel: gqAnswers[0] === opt.title }" @click="gqSel(0, opt.title)">
-                  <div class="gqo-state-img">
-                    <img :src="opt.flag" :alt="opt.title" />
-                  </div>
+                  <div class="gqo-state-img"><img :src="opt.flag" :alt="opt.title" /></div>
                   <div><div class="gqo-title">{{ opt.title }}</div><div class="gqo-sub">{{ opt.sub }}</div></div>
                   <span v-if="gqAnswers[0] === opt.title" class="gqo-check">✓</span>
                 </div>
@@ -311,16 +317,21 @@
             </div>
             <div v-else-if="guideStep === 3" class="guide-q" key="results">
               <div class="gq-label">
-                {{ guideResults.length }} school{{ guideResults.length !== 1 ? 's' : '' }} matched
+                {{ guideLoading ? 'Loading…' : guideTotal + ' school' + (guideTotal !== 1 ? 's' : '') + ' matched' }}
               </div>
-              <template v-if="guideResults.length">
+              <div v-if="guideLoading" class="loading-state">
+                <div class="loading-spinner"></div>
+                <span>Finding schools…</span>
+              </div>
+              <div v-else-if="guideError" class="error-state">{{ guideError }}</div>
+              <template v-else-if="guideListItems.length">
                 <div class="r-meta" style="margin-top:4px">sorted by {{ sortLabel }}</div>
                 <div class="school-list">
                   <SchoolRow
-                    v-for="s in guidePage_"
+                    v-for="s in guideListItems"
                     :key="s.id"
                     :school="s"
-                    :is-open="openRow === s.id"
+                    :is-open="openRow === String(s.id)"
                     :in-cmp="isCmp(s.id)"
                     :sort="fSort"
                     :emp-type="fEmp"
@@ -329,21 +340,20 @@
                     @view-lifestyle="handleViewLifestyle"
                   />
                 </div>
-                <AppPagination :total="guideResults.length" :page="guidePage" @change="goGuidePage" />
+                <AppPagination :total="guideTotal" :page="guidePage" @change="goGuidePage" />
               </template>
-              <div v-else style="text-align:center;padding:1.5rem;font-size:0.8rem;color:var(--ink3)">
-                No schools match — try different answers.
+              <div v-else class="search-empty-state">
+                <div class="ses-title">No schools match</div>
+                <div class="ses-sub">Try different answers.</div>
               </div>
             </div>
           </Transition>
         </div>
       </div>
-
-      <!-- Footer outside guide-inner so it gets full width -->
     </div>
 
     <CompareTray
-      :cmp-list="cmpList"
+      :cmp-list="[...cmpList]"
       @remove="toggleCmp"
       @clear="clearCompare"
       @open-compare="openCompare"
@@ -352,9 +362,10 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useExplorer } from '../composables/useExplorer.js'
-import { PAGE_SIZE } from '../data/db.js'
+import { fetchExplorerLocations } from '../api/explorerApi.js'
+import { normalizeLocationList } from '../utils/locationFields.js'
 import SchoolRow from '../components/SchoolRow.vue'
 import AppPagination from '../components/AppPagination.vue'
 import CompareTray from '../components/CompareTray.vue'
@@ -364,58 +375,154 @@ import 'leaflet/dist/leaflet.css'
 const emit = defineEmits(['navigate', 'view-lifestyle'])
 
 const {
+  PAGE_SIZE,
+  stateOpts, empOpts, remotenessOpts,
   fState, fEmp, fRem, fSort,
   cmpList, openRow, showCmp,
   currentPage, guidePage,
-  filterBadgeCount,
+  filterBadgeCount, remSize,
   selState, selEmp, toggleRem, setSort,
-  getFiltered, toggleCmp, clearCompare, isCmp,
+  loadSearchLocations, loadGuideLocations,
+  searchListItems, searchTotal, searchLoading, searchError,
+  guideListItems, guideTotal, guideLoading, guideError,
+  compareSchools, compareLoading, compareError,
+  toggleCmp, clearCompare, isCmp,
   toggleRow, viewLifestyle,
-  DB,
-  remSize,
+  heroTop,
 } = useExplorer()
 
-const view = ref('entry')
-const filterOpen = ref(false)
+// ── Local UI state ──
+const view        = ref('entry')
+const filterOpen  = ref(false)
+const searchQ     = ref('')
 const searchInput = ref(null)
-const searchQ = ref('')
-const mapEl = ref(null)
-let mapInstance = null
+const mapEl       = ref(null)
+let mapInstance   = null
 
-// ── Dynamic stats ──
-const allIncentiveSchools = computed(() => DB ? DB.filter(s => s.annual_incentive > 0) : [])
-const incentiveCount = computed(() => allIncentiveSchools.value.length)
+// ── Map schools — load all incentive schools for the map ──
+const mapSchools = ref([])
+
+async function loadMapSchools() {
+  try {
+    const [qld, nsw] = await Promise.all([
+      fetchExplorerLocations({ page: 1, page_size: 200, state: 'qld', sort: 'inc' }),
+      fetchExplorerLocations({ page: 1, page_size: 200, state: 'nsw', sort: 'inc' }),
+    ])
+    const all = [
+      ...normalizeLocationList(qld.items),
+      ...normalizeLocationList(nsw.items),
+    ].filter(s => s.annual_incentive > 0)
+    mapSchools.value = all
+    console.log('map schools loaded:', all.length)
+  } catch (e) {
+    console.warn('loadMapSchools failed:', e)
+    mapSchools.value = heroTop.value.filter(s => s.annual_incentive > 0)
+  }
+}
+
+// ── Stats ──
 const topIncentive = computed(() => {
-  if (!allIncentiveSchools.value.length) return '—'
-  const max = Math.max(...allIncentiveSchools.value.map(s => s.annual_incentive))
-  return (max / 1000).toFixed(0) + 'k+'
+  const src = mapSchools.value.length ? mapSchools.value : heroTop.value
+  if (!src.length) return '—'
+  const max = Math.max(...src.map(s => s.annual_incentive || 0))
+  return max > 0 ? '$' + (max / 1000).toFixed(0) + 'k+' : '—'
 })
 
-// ── Colour scale ──
+// ── Sort label ──
+const sortLabel = computed(() =>
+  ({ inc: 'incentive', hc: 'healthcare', dist: 'distance', az: 'name' }[fSort.value] || 'incentive')
+)
+
+// ── Best incentive column for compare ──
+const bestIncentiveIdx = computed(() => {
+  if (!compareSchools.value.length) return -1
+  const vals = compareSchools.value.map(s => s.annual_incentive || 0)
+  return vals.indexOf(Math.max(...vals))
+})
+
+// ── Filter wrappers ──
+function onSelState(v)  { selState(v);  loadSearchLocations(searchQ.value) }
+function onSelEmp(v)    { selEmp(v);    loadSearchLocations(searchQ.value) }
+function onToggleRem(v) { toggleRem(v); loadSearchLocations(searchQ.value) }
+function onSetSort(v)   { setSort(v);   loadSearchLocations(searchQ.value) }
+
+// ── Debounced search ──
+let searchDebounce = null
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(() => {
+    currentPage.value = 1
+    loadSearchLocations(searchQ.value)
+  }, 300)
+}
+
+// ── Pagination ──
+function goPage(p) {
+  currentPage.value = p
+  openRow.value = null
+  loadSearchLocations(searchQ.value)
+}
+function goGuidePage(p) {
+  guidePage.value = p
+  openRow.value = null
+  loadGuideLocations()
+}
+
+// ── Compare ──
+function openCompare()  { if (cmpList.length) showCmp.value = true }
+function closeCompare() { showCmp.value = false }
+
+// ── Row ──
+function handleToggleRow(id) { toggleRow(id) }
+
+async function handleViewLifestyle(id) {
+  const dest = await viewLifestyle(id)
+  if (dest) emit('navigate', dest)
+}
+
+// ── View transitions ──
+watch(view, (v) => {
+  if (v === 'search') nextTick(() => { searchInput.value?.focus(); loadSearchLocations(searchQ.value) })
+  if (v === 'entry')  nextTick(() => { if (!mapInstance) initMap(); else mapInstance.invalidateSize() })
+})
+
+onMounted(() => {
+  nextTick(() => initMap())
+  loadMapSchools()
+})
+onUnmounted(() => { if (mapInstance) { mapInstance.remove(); mapInstance = null } })
+
+// ── Map colours ──
 const INC_MIN = 4232, INC_MAX = 30000
 function lerp(a, b, t) { return a + (b - a) * t }
-function hexToRgb(hex) { return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)] }
+function hexToRgb(h) { return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)] }
 function rgbToHex(r,g,b) { return '#' + [r,g,b].map(v => Math.round(v).toString(16).padStart(2,'0')).join('') }
-function lerpColor(hex1, hex2, t) {
-  const [r1,g1,b1] = hexToRgb(hex1), [r2,g2,b2] = hexToRgb(hex2)
+function lerpColor(h1, h2, t) {
+  const [r1,g1,b1] = hexToRgb(h1), [r2,g2,b2] = hexToRgb(h2)
   return rgbToHex(lerp(r1,r2,t), lerp(g1,g2,t), lerp(b1,b2,t))
 }
-function incentiveColor(incentive, isQld) {
-  const t = Math.max(0, Math.min(1, (incentive - INC_MIN) / (INC_MAX - INC_MIN)))
+function incentiveColor(inc, isQld) {
+  const t = Math.max(0, Math.min(1, (inc - INC_MIN) / (INC_MAX - INC_MIN)))
   return isQld ? lerpColor('#fde68a', '#b45309', t) : lerpColor('#bfdbfe', '#1e3a8a', t)
 }
 
-// ── Map ──
+// ── Map init ──
 function initMap() {
   if (!mapEl.value || mapInstance) return
   mapInstance = L.map(mapEl.value, { center: [-27, 145], zoom: 5, zoomControl: true, scrollWheelZoom: false })
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors', maxZoom: 18,
   }).addTo(mapInstance)
-  allIncentiveSchools.value.forEach((s, i) => {
+  plotMarkers()
+}
+
+function plotMarkers() {
+  if (!mapInstance) return
+  const schools = mapSchools.value.length ? mapSchools.value : heroTop.value
+  schools.forEach((s, i) => {
     if (!s.lat || !s.lng) return
     const isQld = s.state_id === '1'
-    const color = incentiveColor(s.annual_incentive, isQld)
+    const color = incentiveColor(s.annual_incentive || 0, isQld)
     setTimeout(() => {
       const marker = L.circleMarker([s.lat, s.lng], {
         radius: 7, fillColor: color, color: '#fff', weight: 2, opacity: 0, fillOpacity: 0,
@@ -423,119 +530,69 @@ function initMap() {
       let op = 0
       const fade = setInterval(() => {
         op += 0.12
-        marker.setStyle({ opacity: Math.min(op, 1), fillOpacity: Math.min(op * 0.92, 0.92) })
+        marker.setStyle({ opacity: Math.min(op,1), fillOpacity: Math.min(op*0.92,0.92) })
         if (op >= 1) clearInterval(fade)
       }, 25)
       marker.bindTooltip(`
         <div style="font-family:sans-serif;min-width:150px">
           <div style="font-weight:700;font-size:0.8rem;margin-bottom:2px">${s.name}</div>
           <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px">${s.suburb} · ${isQld ? 'QLD' : 'NSW'} · ${s.remoteness}</div>
-          <div style="font-size:0.8rem;font-weight:700;color:${color}">${'$' + Math.round(s.annual_incentive).toLocaleString()}/yr</div>
+          <div style="font-size:0.8rem;font-weight:700;color:${color}">$${Math.round(s.annual_incentive||0).toLocaleString()}/yr</div>
         </div>
-      `, { permanent: false, direction: 'top', offset: [0, -8], opacity: 1, className: 'school-tooltip' })
+      `, { permanent: false, direction: 'top', offset: [0,-8], opacity: 1, className: 'school-tooltip' })
       marker.on('mouseover', function() { this.setRadius(10); this.setStyle({ weight: 3 }); this.openTooltip() })
-      marker.on('mouseout', function() { this.setRadius(7); this.setStyle({ weight: 2 }); this.closeTooltip() })
-      marker.on('click', () => { view.value = 'search'; searchQ.value = s.suburb })
-    }, i * 18)
+      marker.on('mouseout',  function() { this.setRadius(7);  this.setStyle({ weight: 2 }); this.closeTooltip() })
+      marker.on('click', () => { view.value = 'search'; searchQ.value = s.suburb; nextTick(() => loadSearchLocations(s.suburb)) })
+    }, i * 8)
   })
 }
 
-watch(view, (v) => {
-  if (v === 'entry') nextTick(() => { if (!mapInstance) initMap(); else mapInstance.invalidateSize() })
-  if (v === 'search') nextTick(() => searchInput.value?.focus())
-})
-onMounted(() => { nextTick(() => initMap()) })
-onUnmounted(() => { if (mapInstance) { mapInstance.remove(); mapInstance = null } })
+watch(mapSchools, (v) => { if (v.length && mapInstance) plotMarkers() }, { once: true })
+watch(heroTop,    (v) => { if (v.length && mapInstance && !mapSchools.value.length) plotMarkers() }, { once: true })
 
-// ── Search ──
-const searchResults = computed(() => {
-  if (!searchQ.value && remSize.value === 0 && fState.value === 'both') {
-    return DB ? DB.filter(s => s.annual_incentive > 0).sort((a, b) => b.annual_incentive - a.annual_incentive) : []
-  }
-  return getFiltered(searchQ.value)
-})
-const searchPage = computed(() => {
-  const s = (currentPage.value - 1) * PAGE_SIZE
-  return searchResults.value.slice(s, s + PAGE_SIZE)
-})
-watch([searchQ, fState, remSize, fSort], () => { currentPage.value = 1 })
-function goPage(p) { currentPage.value = p; openRow.value = null }
-const sortLabel = computed(() => ({ inc: 'incentive', hc: 'healthcare', dist: 'distance', az: 'name' }[fSort.value]))
+// ── Guided quiz ──
+const guideStep     = ref(0)
+const gqAnswers     = ref([null, null, null])
+const guideProgress = computed(() => [0, 33, 66, 100][guideStep.value] ?? 100)
 
-// ── Guide ──
-const guideStep = ref(0)
-const gqAnswers = ref([null, null, null])
-const guideResults = ref([])
-const guideProgress = computed(() => [0, 33, 66, 100][guideStep.value])
-
-function startGuide() { view.value = 'guide'; guideStep.value = 0; gqAnswers.value = [null, null, null]; guideResults.value = [] }
-function gqSel(step, title) { gqAnswers.value[step] = title }
+function startGuide() {
+  view.value = 'guide'
+  guideStep.value = 0
+  gqAnswers.value = [null, null, null]
+}
+function gqSel(step, title) {
+  const updated = [...gqAnswers.value]; updated[step] = title; gqAnswers.value = updated
+}
 function gqNext(step) { guideStep.value = step + 1 }
+
 function gqFinish() {
-  const a1 = gqAnswers.value[0] || '', a2 = gqAnswers.value[1] || '', a3 = gqAnswers.value[2] || ''
+  const a1 = gqAnswers.value[0] || ''
+  const a2 = gqAnswers.value[1] || ''
+  const a3 = gqAnswers.value[2] || ''
   selState(a1.includes('Queensland') ? 'qld' : a1.includes('New South Wales') ? 'nsw' : 'both')
-  fRem.clear()
-  if (a2.includes('Outer Regional')) fRem.add('3')
-  else if (a2.includes('Very Remote')) fRem.add('5')
-  else if (a2.includes('Remote')) fRem.add('4')
+  ;[...fRem].forEach(v => toggleRem(v))
+  if (a2.includes('Outer Regional')) toggleRem('3')
+  else if (a2.includes('Very Remote')) toggleRem('5')
+  else if (a2.includes('Remote')) toggleRem('4')
   if (a3.includes('Healthcare')) setSort('hc')
   else if (a3.includes('Distance')) setSort('dist')
   else setSort('inc')
-  guideResults.value = getFiltered('').filter(s => s.annual_incentive > 0)
-  guideStep.value = 3; guidePage.value = 1
+  guidePage.value = 1
+  guideStep.value = 3
+  loadGuideLocations()
 }
-const guidePage_ = computed(() => {
-  const s = (guidePage.value - 1) * PAGE_SIZE
-  return guideResults.value.slice(s, s + PAGE_SIZE)
-})
-function goGuidePage(p) { guidePage.value = p; openRow.value = null }
 
-// ── Compare ──
-const cmpSchools = computed(() => cmpList.map(id => DB.find(x => x.id === id)).filter(Boolean))
-const bestIncentiveIdx = computed(() => {
-  if (!cmpSchools.value.length) return -1
-  const vals = cmpSchools.value.map(s => s.annual_incentive || 0)
-  return vals.indexOf(Math.max(...vals))
-})
-function openCompare() { if (!cmpList.length) return; showCmp.value = true }
-function closeCompare() { showCmp.value = false }
-function handleToggleRow(id) { toggleRow(id) }
-function handleViewLifestyle(id) { const dest = viewLifestyle(id); if (dest) emit('navigate', dest) }
-
-const stateOpts = [
-  { v: 'both', icon: '🗺️', label: 'Both' },
-  { v: 'qld',  icon: '☀️', label: 'QLD' },
-  { v: 'nsw',  icon: '🌉', label: 'NSW' },
-]
-const remotenessOpts = [
-  { v: '5', icon: '🔴', label: 'Very Remote' },
-  { v: '4', icon: '🟠', label: 'Remote' },
-  { v: '3', icon: '🟡', label: 'Outer Regional' },
-]
+// ── Static options ──
 const sortOpts = [
   { v: 'inc',  icon: '💰', label: 'Incentive' },
   { v: 'hc',   icon: '🏥', label: 'Healthcare' },
   { v: 'dist', icon: '📍', label: 'Distance' },
   { v: 'az',   icon: '🔤', label: 'A–Z' },
 ]
-
-// Local flag assets — place files in src/assets/
 const q1opts = [
-  {
-    title: 'Both states',
-    flag: new URL('../assets/flag-au.png', import.meta.url).href,
-    sub: 'Show QLD and NSW together'
-  },
-  {
-    title: 'Queensland',
-    flag: new URL('../assets/flag-qld.png', import.meta.url).href,
-    sub: 'QLD Locality Allowance applies'
-  },
-  {
-    title: 'New South Wales',
-    flag: new URL('../assets/flag-nsw.png', import.meta.url).href,
-    sub: 'NSW Rural Teacher Incentive applies'
-  },
+  { title: 'Both states',     flag: new URL('../assets/flag-au.png',  import.meta.url).href, sub: 'Show QLD and NSW together' },
+  { title: 'Queensland',      flag: new URL('../assets/flag-qld.png', import.meta.url).href, sub: 'QLD Locality Allowance applies' },
+  { title: 'New South Wales', flag: new URL('../assets/flag-nsw.png', import.meta.url).href, sub: 'NSW Rural Teacher Incentive applies' },
 ]
 const q2opts = [
   { title: 'Outer Regional', emoji: '🛣️', sub: '~100–300 km from a city · some incentives available' },
@@ -552,82 +609,75 @@ const q3opts = [
 </script>
 
 <style scoped>
-/* ── Entry ── */
-.exp-entry { padding: 24px 32px 0; max-width: 960px; margin: 0 auto; }
-.exp-entry-h { text-align: center; margin-bottom: 28px; }
-.exp-entry-h h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
-.exp-entry-h p { color: var(--ink3, #6b7280); font-size: 0.85rem; }
-.two-paths { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.path-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 16px; padding: 28px 28px 24px; cursor: pointer; transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; gap: 10px; }
-.path-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.09); transform: translateY(-3px); }
-.pc-search:hover { border-color: #93c5fd; }
-.pc-guide:hover  { border-color: #6ee7b7; }
-.pc-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
-.pc-icon.blue  { background: #dbeafe; }
-.pc-icon.green { background: #d1fae5; }
-.pc-title { font-size: 1.05rem; font-weight: 700; color: var(--ink1, #111827); }
-.pc-sub { font-size: 0.8rem; color: var(--ink3, #6b7280); line-height: 1.5; }
-.pc-features { list-style: none; padding: 0; margin: 4px 0 8px; display: flex; flex-direction: column; gap: 7px; }
-.pc-features li { font-size: 0.78rem; color: var(--ink2, #374151); display: flex; align-items: center; gap: 7px; }
-.pc-btn { display: inline-block; padding: 8px 18px; border-radius: 999px; font-size: 0.82rem; font-weight: 600; width: fit-content; margin-top: auto; cursor: pointer; transition: opacity 0.15s; }
-.pc-btn:hover { opacity: 0.85; }
-.pc-btn.blue  { background: #dbeafe; color: #1d4ed8; }
-.pc-btn.green { background: #d1fae5; color: #065f46; }
-
-/* ── Stats ── */
-.exp-stats-bar { display: flex; align-items: center; justify-content: center; margin-top: 20px; background: #fff; border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 16px 24px; }
-.exp-stat { display: flex; flex-direction: column; align-items: center; flex: 1; }
-.es-num { font-size: 1.3rem; font-weight: 700; color: var(--ink1, #111827); }
-.es-lbl { font-size: 0.72rem; color: var(--ink3, #6b7280); margin-top: 2px; }
-.exp-stat-div { width: 1px; height: 36px; background: #e5e7eb; margin: 0 8px; }
-
-/* ── Map ── */
-.exp-map-section { margin-top: 24px; background: #fff; border: 1.5px solid #e5e7eb; border-radius: 16px; overflow: hidden; position: relative; margin-bottom: 40px; }
-.exp-map-header { padding: 12px 20px 10px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: baseline; gap: 12px; }
-.exp-map-label { font-size: 0.82rem; font-weight: 600; color: var(--ink2, #374151); }
-.exp-map-hint { font-size: 0.72rem; color: var(--ink3, #9ca3af); }
-.exp-map-container { height: 420px; width: 100%; z-index: 0; }
-.map-legend { position: absolute; bottom: 16px; right: 16px; background: rgba(255,255,255,0.96); border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; z-index: 999; min-width: 130px; }
-.ml-title { font-size: 0.68rem; font-weight: 600; color: var(--ink3, #6b7280); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-.ml-gradient-row { display: flex; flex-direction: column; gap: 2px; }
-.ml-gradient { height: 10px; border-radius: 4px; width: 100%; }
-.qld-grad { background: linear-gradient(to right, #fde68a, #b45309); }
-.nsw-grad { background: linear-gradient(to right, #bfdbfe, #1e3a8a); }
-.ml-grad-labels { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--ink3, #9ca3af); }
-.ml-grad-state { font-size: 0.7rem; font-weight: 600; color: var(--ink2, #374151); margin-top: 1px; }
-:global(.school-tooltip) { background: #1e293b !important; border: none !important; border-radius: 8px !important; color: #fff !important; padding: 8px 10px !important; font-size: 0.78rem !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
-:global(.school-tooltip::before) { border-top-color: #1e293b !important; }
-
-/* ── Filter ── */
-.fp-slide-enter-active, .fp-slide-leave-active { transition: max-height 0.28s ease, opacity 0.22s ease; overflow: hidden; }
-.fp-slide-enter-from, .fp-slide-leave-to { max-height: 0; opacity: 0; }
-.fp-slide-enter-to, .fp-slide-leave-from { max-height: 400px; opacity: 1; }
-.fp-tile-icon { font-size: 0.9rem; }
-.sort-icon { font-size: 0.85rem; }
-.sort-pill { display: flex; align-items: center; gap: 5px; }
-
-/* ── Search ── */
-.search-empty-state { text-align: center; padding: 2.5rem 1rem; }
-.ses-title { font-size: 0.95rem; font-weight: 700; color: var(--ink1, #111827); margin-bottom: 6px; }
-.ses-sub { font-size: 0.8rem; color: var(--ink3, #6b7280); }
-
-/* ── Guide ── */
-.guide-path { display: flex; flex-direction: column; }
-.guide-inner { flex: 1; }
-.guide-slide-enter-active { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.guide-slide-leave-active { transition: all 0.18s ease; }
-.guide-slide-enter-from { opacity: 0; transform: translateX(32px) scale(0.97); }
-.guide-slide-leave-to   { opacity: 0; transform: translateX(-20px); }
-.guide-q { padding: 0 0 8px; }
-.gq-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; color: var(--ink1, #111827); }
-.gq-opts { display: flex; flex-direction: column; gap: 10px; }
-.gq-opt { display: flex; align-items: center; gap: 14px; background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.15s; position: relative; }
-.gq-opt:hover { border-color: #a5b4fc; transform: translateX(3px); }
-.gq-opt.sel { border-color: #6366f1; background: #eef2ff; transform: translateX(3px); }
-.gqo-state-img { width: 56px; height: 36px; border-radius: 6px; overflow: hidden; flex-shrink: 0; border: 1px solid #e5e7eb; background: #f3f4f6; }
-.gqo-state-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.gqo-emoji { font-size: 1.5rem; flex-shrink: 0; }
-.gqo-title { font-weight: 600; font-size: 0.9rem; }
-.gqo-sub { font-size: 0.75rem; color: var(--ink3, #6b7280); margin-top: 2px; }
-.gqo-check { position: absolute; right: 14px; color: #6366f1; font-weight: 700; font-size: 1rem; }
+.loading-state { display:flex; align-items:center; gap:10px; padding:2rem 1rem; justify-content:center; color:var(--ink3,#6b7280); font-size:0.85rem; }
+.loading-spinner { width:18px; height:18px; border:2px solid #e5e7eb; border-top-color:#3b82f6; border-radius:50%; animation:spin 0.7s linear infinite; flex-shrink:0; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.error-state { padding:1.5rem; text-align:center; color:#dc2626; font-size:0.82rem; background:#fef2f2; border-radius:8px; margin:12px 0; }
+.exp-entry { padding:24px 32px 0; max-width:960px; margin:0 auto; }
+.exp-entry-h { text-align:center; margin-bottom:28px; }
+.exp-entry-h h2 { font-size:1.5rem; font-weight:700; margin-bottom:6px; }
+.exp-entry-h p { color:var(--ink3,#6b7280); font-size:0.85rem; }
+.two-paths { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.path-card { background:#fff; border:1.5px solid #e5e7eb; border-radius:16px; padding:28px 28px 24px; cursor:pointer; transition:box-shadow 0.2s,transform 0.2s,border-color 0.2s; display:flex; flex-direction:column; gap:10px; }
+.path-card:hover { box-shadow:0 8px 28px rgba(0,0,0,0.09); transform:translateY(-3px); }
+.pc-search:hover { border-color:#93c5fd; }
+.pc-guide:hover  { border-color:#6ee7b7; }
+.pc-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; }
+.pc-icon.blue  { background:#dbeafe; }
+.pc-icon.green { background:#d1fae5; }
+.pc-title { font-size:1.05rem; font-weight:700; color:var(--ink1,#111827); }
+.pc-sub { font-size:0.8rem; color:var(--ink3,#6b7280); line-height:1.5; }
+.pc-features { list-style:none; padding:0; margin:4px 0 8px; display:flex; flex-direction:column; gap:7px; }
+.pc-features li { font-size:0.78rem; color:var(--ink2,#374151); display:flex; align-items:center; gap:7px; }
+.pc-btn { display:inline-block; padding:8px 18px; border-radius:999px; font-size:0.82rem; font-weight:600; width:fit-content; margin-top:auto; cursor:pointer; transition:opacity 0.15s; }
+.pc-btn:hover { opacity:0.85; }
+.pc-btn.blue  { background:#dbeafe; color:#1d4ed8; }
+.pc-btn.green { background:#d1fae5; color:#065f46; }
+.exp-stats-bar { display:flex; align-items:center; justify-content:center; margin-top:20px; background:#fff; border:1.5px solid #e5e7eb; border-radius:14px; padding:16px 24px; }
+.exp-stat { display:flex; flex-direction:column; align-items:center; flex:1; }
+.es-num { font-size:1.3rem; font-weight:700; color:var(--ink1,#111827); }
+.es-lbl { font-size:0.72rem; color:var(--ink3,#6b7280); margin-top:2px; }
+.exp-stat-div { width:1px; height:36px; background:#e5e7eb; margin:0 8px; }
+.exp-map-section { margin-top:24px; background:#fff; border:1.5px solid #e5e7eb; border-radius:16px; overflow:hidden; position:relative; margin-bottom:40px; }
+.exp-map-header { padding:12px 20px 10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:baseline; gap:12px; }
+.exp-map-label { font-size:0.82rem; font-weight:600; color:var(--ink2,#374151); }
+.exp-map-hint { font-size:0.72rem; color:var(--ink3,#9ca3af); }
+.exp-map-container { height:420px; width:100%; z-index:0; }
+.map-legend { position:absolute; bottom:16px; right:16px; background:rgba(255,255,255,0.96); border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; z-index:999; min-width:130px; }
+.ml-title { font-size:0.68rem; font-weight:600; color:var(--ink3,#6b7280); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+.ml-gradient-row { display:flex; flex-direction:column; gap:2px; }
+.ml-gradient { height:10px; border-radius:4px; width:100%; }
+.qld-grad { background:linear-gradient(to right,#fde68a,#b45309); }
+.nsw-grad { background:linear-gradient(to right,#bfdbfe,#1e3a8a); }
+.ml-grad-labels { display:flex; justify-content:space-between; font-size:0.62rem; color:var(--ink3,#9ca3af); }
+.ml-grad-state { font-size:0.7rem; font-weight:600; color:var(--ink2,#374151); margin-top:1px; }
+:global(.school-tooltip) { background:#1e293b !important; border:none !important; border-radius:8px !important; color:#fff !important; padding:8px 10px !important; font-size:0.78rem !important; box-shadow:0 4px 12px rgba(0,0,0,0.2) !important; }
+:global(.school-tooltip::before) { border-top-color:#1e293b !important; }
+.fp-slide-enter-active,.fp-slide-leave-active { transition:max-height 0.28s ease,opacity 0.22s ease; overflow:hidden; }
+.fp-slide-enter-from,.fp-slide-leave-to { max-height:0; opacity:0; }
+.fp-slide-enter-to,.fp-slide-leave-from { max-height:400px; opacity:1; }
+.fp-tile-icon { font-size:0.9rem; }
+.sort-icon { font-size:0.85rem; }
+.sort-pill { display:flex; align-items:center; gap:5px; }
+.search-empty-state { text-align:center; padding:2.5rem 1rem; }
+.ses-title { font-size:0.95rem; font-weight:700; color:var(--ink1,#111827); margin-bottom:6px; }
+.ses-sub { font-size:0.8rem; color:var(--ink3,#6b7280); }
+.guide-path { display:flex; flex-direction:column; }
+.guide-inner { flex:1; }
+.guide-slide-enter-active { transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.guide-slide-leave-active { transition:all 0.18s ease; }
+.guide-slide-enter-from { opacity:0; transform:translateX(32px) scale(0.97); }
+.guide-slide-leave-to   { opacity:0; transform:translateX(-20px); }
+.guide-q { padding:0 0 8px; }
+.gq-text { font-size:1.2rem; font-weight:700; margin-bottom:20px; color:var(--ink1,#111827); }
+.gq-opts { display:flex; flex-direction:column; gap:10px; }
+.gq-opt { display:flex; align-items:center; gap:14px; background:#fff; border:1.5px solid #e5e7eb; border-radius:12px; padding:14px 16px; cursor:pointer; transition:border-color 0.15s,background 0.15s,transform 0.15s; position:relative; }
+.gq-opt:hover { border-color:#a5b4fc; transform:translateX(3px); }
+.gq-opt.sel { border-color:#6366f1; background:#eef2ff; transform:translateX(3px); }
+.gqo-state-img { width:56px; height:36px; border-radius:6px; overflow:hidden; flex-shrink:0; border:1px solid #e5e7eb; background:#f3f4f6; }
+.gqo-state-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.gqo-emoji { font-size:1.5rem; flex-shrink:0; }
+.gqo-title { font-weight:600; font-size:0.9rem; }
+.gqo-sub { font-size:0.75rem; color:var(--ink3,#6b7280); margin-top:2px; }
+.gqo-check { position:absolute; right:14px; color:#6366f1; font-weight:700; font-size:1rem; }
 </style>
