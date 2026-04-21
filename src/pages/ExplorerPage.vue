@@ -117,7 +117,7 @@
 
       <div class="exp-stats-bar">
         <div class="exp-stat">
-          <span class="es-num">147</span>
+          <span class="es-num">1,080</span>
           <span class="es-lbl">schools with incentives</span>
         </div>
         <div class="exp-stat-div"></div>
@@ -526,7 +526,7 @@ function plotMarkers() {
         if (op >= 1) clearInterval(fade)
       }, 25)
       marker.bindTooltip(`
-        <div style="font-family:sans-serif;min-width:150px">
+        <div style="font-family:'DM Sans',sans-serif;min-width:150px">
           <div style="font-weight:700;font-size:0.8rem;margin-bottom:2px">${s.name}</div>
           <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px">${s.suburb} · ${isQld ? 'QLD' : 'NSW'} · ${s.remoteness}</div>
           <div style="font-size:0.8rem;font-weight:700;color:${color}">$${Math.round(s.annual_incentive||0).toLocaleString()}/yr</div>

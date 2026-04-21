@@ -18,7 +18,7 @@
           <p>Every number on this platform comes from an official government or statistical source. We don't tell you where to go. We give you the data to decide for yourself.</p>
         </div>
         <div class="mission-stats">
-          <div class="ms"><div class="ms-n">50</div><div class="ms-l">Schools</div></div>
+          <div class="ms"><div class="ms-n">1,080</div><div class="ms-l">Schools</div></div>
           <div class="ms"><div class="ms-n">2</div><div class="ms-l">States</div></div>
           <div class="ms"><div class="ms-n">4</div><div class="ms-l">Data sources</div></div>
           <div class="ms"><div class="ms-n">Free</div><div class="ms-l">Always</div></div>
@@ -41,7 +41,7 @@
             <div class="data-card-body">
               <div class="data-card-source">ACARA My School 2025</div>
               <div class="data-card-title">School data</div>
-              <div class="data-card-text">50 government, Catholic and independent schools across QLD and NSW. Includes name, suburb, type, sector, GPS coordinates, and ABS remoteness classification. Updated annually.</div>
+              <div class="data-card-text">1,080 government, Catholic and independent schools across QLD and NSW. Includes name, suburb, type, sector, GPS coordinates, and ABS remoteness classification. Updated annually.</div>
               <a href="https://www.myschool.edu.au" target="_blank" rel="noopener" class="data-card-link">Visit ACARA My School</a>
             </div>
           </div>
