@@ -1,52 +1,16 @@
 <template>
-  <div v-if="!authenticated" class="auth-gate">
-    <div class="auth-box">
-      <div class="auth-gem">RT</div>
-      <h2 class="auth-title">Rural Teaching Incentive</h2>
-      <p class="auth-sub">Enter the password to continue</p>
-      <form @submit.prevent="tryAuth">
-        <input
-          v-model="passwordInput"
-          type="password"
-          class="auth-input"
-          placeholder="Password"
-          autofocus
-        />
-        <p v-if="authError" class="auth-error">Incorrect password. Please try again.</p>
-        <button type="submit" class="auth-btn">Continue</button>
-      </form>
-    </div>
-  </div>
-  <template v-else>
-    <AppNav :current-page="currentPage" @navigate="navigate" />
-    <main>
-      <HomePage v-if="currentPage === 'home'" @navigate="navigate" @view-lifestyle="handleViewLifestyle" />
-      <ExplorerPage v-else-if="currentPage === 'explorer'" @navigate="navigate" />
-      <LifestylePage v-else-if="currentPage === 'insights'" @navigate="navigate" />
-      <AboutPage v-else-if="currentPage === 'about'" />
-    </main>
-    <AppFooter @navigate="navigate" />
-  </template>
+  <AppNav :current-page="currentPage" @navigate="navigate" />
+  <main>
+    <HomePage v-if="currentPage === 'home'" @navigate="navigate" @view-lifestyle="handleViewLifestyle" />
+    <ExplorerPage v-else-if="currentPage === 'explorer'" @navigate="navigate" />
+    <LifestylePage v-else-if="currentPage === 'insights'" @navigate="navigate" />
+    <AboutPage v-else-if="currentPage === 'about'" />
+  </main>
+  <AppFooter @navigate="navigate" />
 </template>
 
 <script setup>
 import { ref } from 'vue'
-
-const PASS = 'hardstaff@2026'
-const authenticated = ref(sessionStorage.getItem('rti_auth') === '1')
-const passwordInput = ref('')
-const authError = ref(false)
-
-function tryAuth() {
-  if (passwordInput.value === PASS) {
-    sessionStorage.setItem('rti_auth', '1')
-    authenticated.value = true
-    authError.value = false
-  } else {
-    authError.value = true
-    passwordInput.value = ''
-  }
-}
 import AppNav from './components/AppNav.vue'
 import AppFooter from './components/AppFooter.vue'
 import HomePage from './pages/HomePage.vue'
@@ -363,7 +327,7 @@ main {
 
 /* ── EXPLORER ── */
 /* keep these generic, wider, and not overly restrictive */
-.exp-entry { padding:24px 24px 0; max-width:1200px; margin:0 auto; }
+.exp-entry { padding:24px 24px 0; }
 .exp-entry-h { text-align:center; margin-bottom:28px; }
 .exp-entry-h h2 { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; margin-bottom:6px; }
 .exp-entry-h p { font-size:0.82rem; color:var(--ink2); }
@@ -384,7 +348,7 @@ main {
 .pc-btn.green { background:var(--green-s); color:var(--green-d); }
 .path-card.pc-guide:hover .pc-btn.green { background:var(--green); color:#fff; }
 
-.search-path { padding:20px 24px 32px; max-width:1200px; margin:0 auto; }
+.search-path { padding:20px 160px 32px; }
 .back-row { display:flex; align-items:center; gap:6px; font-size:0.74rem; font-weight:600; color:var(--ink2); cursor:pointer; margin-bottom:16px; width:fit-content; transition:color 0.12s; }
 .back-row:hover { color:var(--blue); }
 .srch-row { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
@@ -416,8 +380,7 @@ main {
 .sort-pill:hover { border-color:var(--b2); color:var(--ink); }
 .sort-pill.active { background:var(--ink); color:#fff; border-color:var(--ink); }
 
-.guide-path { padding:24px 24px 40px; max-width:1200px; margin:0 auto; }
-.guide-path.results-open { max-width:1200px; }
+.guide-path { padding:24px 160px 40px; }
 .guide-progress { margin-bottom:24px; }
 .gp-track { height:3px; background:var(--b); border-radius:99px; overflow:hidden; margin-bottom:8px; }
 .gp-fill { height:100%; background:var(--green); border-radius:99px; transition:width 0.4s cubic-bezier(0.22,1,0.36,1); }
@@ -523,7 +486,7 @@ main {
 .pg-info { font-size:0.71rem; color:var(--ink3); text-align:center; padding-bottom:8px; }
 
 /* ── LIFESTYLE INSIGHTS ── */
-.ins-search-bar { position:sticky; top:56px; z-index:100; background:var(--s); border-bottom:1px solid var(--b); padding:12px 24px; display:flex; align-items:center; gap:10px; }
+.ins-search-bar { position:sticky; top:56px; z-index:100; background:var(--s); border-bottom:1px solid var(--b); padding:12px 160px; display:flex; align-items:center; gap:10px; }
 .ins-sw { flex:1; max-width:360px; display:flex; align-items:center; gap:8px; padding:8px 12px; border:1.5px solid var(--b2); border-radius:var(--r); background:var(--s); transition:border-color 0.13s; }
 .ins-sw:focus-within { border-color:var(--blue); }
 .ins-sw input { flex:1; border:none; background:transparent; font-size:0.84rem; color:var(--ink); outline:none; font-family:'DM Sans',sans-serif; }
@@ -537,14 +500,14 @@ main {
 .ins-sri-sub { font-size:0.66rem; color:var(--ink3); margin-top:1px; }
 .ins-clear { font-size:0.72rem; color:var(--ink3); cursor:pointer; padding:2px 4px; }
 .ins-clear:hover { color:var(--red); }
-.ins-tray-bar { background:var(--blue-s); border-bottom:1px solid #C5D9F9; padding:8px 24px; display:none; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.72rem; }
+.ins-tray-bar { background:var(--blue-s); border-bottom:1px solid #C5D9F9; padding:8px 160px; display:none; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.72rem; }
 .ins-tray-bar.show { display:flex; }
 .itp-lbl { color:var(--blue-d); font-weight:600; }
 .itp-pill { background:var(--s); border:1px solid var(--blue); color:var(--blue); border-radius:99px; padding:2px 10px; font-size:0.7rem; font-weight:600; cursor:pointer; transition:all 0.12s; }
 .itp-pill:hover,.itp-pill.active { background:var(--blue); color:#fff; }
 .itp-sbs { background:var(--s); border:1px solid var(--b2); color:var(--ink2); border-radius:99px; padding:2px 10px; font-size:0.7rem; font-weight:600; cursor:pointer; transition:all 0.12s; }
 .itp-sbs.active { background:var(--ink); color:#fff; border-color:var(--ink); }
-.ins-body { padding:20px 24px 40px; flex:1; }
+.ins-body { padding:20px 160px 40px; flex:1; }
 .ins-school-hdr { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px; }
 .ish-name { font-family:'Playfair Display',serif; font-size:1.35rem; font-weight:900; margin-bottom:5px; }
 .ish-meta { font-size:0.7rem; color:var(--ink2); display:flex; gap:5px; align-items:center; flex-wrap:wrap; }
@@ -588,83 +551,6 @@ main {
 .about-card-text { font-size:0.76rem; color:var(--ink2); line-height:1.65; }
 .disclaimer { background:#FFF8E7; border:1px solid #F0D080; border-radius:var(--r2); padding:14px 16px; font-size:0.76rem; color:var(--ink2); line-height:1.6; }
 
-/* ── AUTH GATE ── */
-.auth-gate {
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(150deg,#EBF2FD 0%,var(--bg) 45%,#E5F7EC 100%);
-}
-.auth-box {
-  background:var(--s);
-  border:1px solid var(--b);
-  border-radius:var(--r);
-  box-shadow:var(--sh-lg);
-  padding:36px 32px;
-  width:100%;
-  max-width:360px;
-  text-align:center;
-}
-.auth-gem {
-  width:44px;
-  height:44px;
-  border-radius:10px;
-  background:linear-gradient(135deg,var(--blue),var(--green));
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:0.75rem;
-  font-weight:700;
-  color:#fff;
-  letter-spacing:-0.02em;
-  margin:0 auto 16px;
-}
-.auth-title {
-  font-family:'Playfair Display',serif;
-  font-size:1.25rem;
-  font-weight:900;
-  margin-bottom:4px;
-}
-.auth-sub {
-  font-size:0.78rem;
-  color:var(--ink2);
-  margin-bottom:20px;
-}
-.auth-input {
-  width:100%;
-  padding:10px 14px;
-  border:1.5px solid var(--b2);
-  border-radius:var(--r2);
-  font-family:'DM Sans',sans-serif;
-  font-size:0.88rem;
-  color:var(--ink);
-  background:var(--bg);
-  outline:none;
-  margin-bottom:10px;
-  transition:border-color 0.13s;
-}
-.auth-input:focus { border-color:var(--blue); }
-.auth-error {
-  font-size:0.72rem;
-  color:var(--red);
-  margin-bottom:8px;
-}
-.auth-btn {
-  width:100%;
-  padding:10px;
-  background:var(--ink);
-  color:#fff;
-  border:none;
-  border-radius:var(--r2);
-  font-family:'DM Sans',sans-serif;
-  font-size:0.84rem;
-  font-weight:700;
-  cursor:pointer;
-  transition:background 0.14s;
-}
-.auth-btn:hover { background:var(--blue); }
-
 /* ── FOOTER ── */
 footer { background:var(--ink); color:rgba(255,255,255,0.55); }
 .foot-in { display:grid; grid-template-columns:1fr 1fr 1fr; gap:32px; padding:32px 24px; }
@@ -705,7 +591,7 @@ footer { background:var(--ink); color:rgba(255,255,255,0.55); }
   .home-cta { flex-direction:column; align-items:flex-start; padding:24px 16px; gap:14px; }
 
   .page-topbar { padding:12px 16px; }
-  .exp-entry { padding:24px 16px; max-width:100%; }
+  .exp-entry { padding:24px 16px; }
   .exp-entry-h h2 { font-size:1.25rem; }
   .two-paths { grid-template-columns:1fr; gap:10px; }
   .path-card { padding:18px 16px; text-align:left; flex-direction:row; align-items:flex-start; }
@@ -718,7 +604,7 @@ footer { background:var(--ink); color:rgba(255,255,255,0.55); }
   .sort-row { gap:5px; }
   .sort-pill { font-size:0.68rem; padding:4px 9px; }
 
-  .guide-path { padding:18px 16px 28px; max-width:100%; }
+  .guide-path { padding:18px 20px 28px; }
   .srow-main { padding:10px 12px; gap:8px; }
   .srow-name { font-size:0.82rem; }
   .srow-metric { min-width:72px; }

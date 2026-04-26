@@ -11,7 +11,6 @@ export function toNum(value, fallback = 0) {
 
 /** QLD → '1', NSW → '2' for chip styling; otherwise string of state_id */
 export function normalizeStateIdForUi(raw) {
-  console.log('RAW:', raw)
   if (!raw || typeof raw !== 'object') return ''
   const code = String(raw.state_code || raw.stateCode || '').toUpperCase()
   if (code === 'QLD') return '1'

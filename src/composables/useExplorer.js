@@ -132,6 +132,8 @@ const openRow = ref(null)
 const showCmp = ref(false)
 const insSchool = ref(null)
 const sbsMode = ref(false)
+const launchView = ref(null) // 'search' | 'guide' | null — consumed once by ExplorerPage on mount
+const launchSort = ref(null) // 'inc' | 'hc' | 'dist' | 'az' | null — applied after resetFilters in the view watcher
 const currentPage = ref(1)
 const guidePage = ref(1)
 
@@ -414,5 +416,7 @@ export function useExplorer() {
     heroLoading,
     heroError,
     searchSchoolsForDropdown,
+    launchView,
+    launchSort,
   }
 }

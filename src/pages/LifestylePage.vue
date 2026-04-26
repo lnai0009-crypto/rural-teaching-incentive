@@ -11,6 +11,7 @@
         <div class="ins-sw">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input
+            ref="searchInputEl"
             v-model="insQ"
             placeholder="Search for a school to view its lifestyle…"
             @input="onInsSearch"
@@ -60,32 +61,112 @@
     <div class="ins-body">
       <!-- Empty state -->
       <div v-if="!insSchool && !sbsMode" class="ins-empty">
-        <div class="ins-empty-prompt">
-          <div class="ins-empty-icon">🌿</div>
-          <div class="ins-empty-title">Search for a school above to explore its lifestyle</div>
-          <ul class="ins-empty-hints">
-            <li>Search by school name or suburb above</li>
-            <li>Add schools to your compare tray in <strong>Explorer</strong> — they'll appear here</li>
-            <li>Tap "View Lifestyle →" on any school in Explorer to jump straight in</li>
-          </ul>
-        </div>
-        <div class="ins-explainers">
-          <div class="ins-exp-card">
-            <div class="ins-exp-icon">📍</div>
-            <div class="ins-exp-title">Location & Cost</div>
-            <div class="ins-exp-desc">Distance from nearest city, median weekly rent, and how far your salary stretches in the area.</div>
-          </div>
-          <div class="ins-exp-card">
-            <div class="ins-exp-icon">🏥</div>
-            <div class="ins-exp-title">Healthcare & Safety</div>
-            <div class="ins-exp-desc">Number of healthcare facilities nearby, graded A–F, plus a local crime rank so you know what to expect.</div>
-          </div>
-          <div class="ins-exp-card">
-            <div class="ins-exp-icon">🎓</div>
-            <div class="ins-exp-title">Education & Nature</div>
-            <div class="ins-exp-desc">Schools in the area, national parks, and nature reserves — for you, your family, and your weekends.</div>
+
+        <!-- Hero -->
+        <div class="ies-hero">
+          <h2 class="ies-h">What's life actually like near a school?</h2>
+          <p class="ies-sub">Check rent, healthcare, safety, and nature before you decide.</p>
+          <div class="ies-actions">
+            <button class="ies-btn-primary" @click="focusSearch">Search a school</button>
+            <button class="ies-btn-secondary" @click="emit('navigate', 'explorer')">Browse Explorer →</button>
           </div>
         </div>
+
+        <!-- Goal cards -->
+        <div class="ies-goals">
+          <div class="ies-goal-card" @click="goExplorerSort('inc')">
+            <span class="ies-goal-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </span>
+            <div class="ies-goal-label">Highest incentive</div>
+            <div class="ies-goal-sub">Sort schools by annual bonus on top of base salary</div>
+          </div>
+          <div class="ies-goal-card" @click="goExplorerSort('hc')">
+            <span class="ies-goal-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </span>
+            <div class="ies-goal-label">Best healthcare</div>
+            <div class="ies-goal-sub">Sort schools by nearby healthcare facilities</div>
+          </div>
+          <div class="ies-goal-card" @click="goExplorerSort('dist')">
+            <span class="ies-goal-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <div class="ies-goal-label">Closest to city</div>
+            <div class="ies-goal-sub">Sort schools by distance to nearest city</div>
+          </div>
+          <div class="ies-goal-card" @click="goExplorerSort('az')">
+            <span class="ies-goal-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </span>
+            <div class="ies-goal-label">Browse all schools</div>
+            <div class="ies-goal-sub">Alphabetical list — explore at your own pace</div>
+          </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="ies-how">
+          <div class="ies-how-title">How it works</div>
+          <div class="ies-steps">
+            <div class="ies-step">
+              <div class="ies-step-n">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <div class="ies-step-text">Search a school above, or pick one from the Explorer</div>
+            </div>
+            <div class="ies-step-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+            <div class="ies-step">
+              <div class="ies-step-n">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              </div>
+              <div class="ies-step-text">Read its scorecard — rent, healthcare, safety, nature</div>
+            </div>
+            <div class="ies-step-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+            <div class="ies-step">
+              <div class="ies-step-n">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="6" height="18" rx="1"/><rect x="16" y="3" width="6" height="18" rx="1"/><line x1="10" y1="7" x2="14" y2="7"/><line x1="10" y1="12" x2="14" y2="12"/><line x1="10" y1="17" x2="14" y2="17"/></svg>
+              </div>
+              <div class="ies-step-text">Add multiple schools to compare them side by side</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scorecard preview -->
+        <div class="ies-preview">
+          <div class="ies-preview-label">What you'll see</div>
+          <div class="ies-preview-cards">
+            <div class="ies-preview-card">
+              <div class="ies-pc-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Location &amp; Cost
+              </div>
+              <div class="ies-pc-row"><span class="ies-pc-k">Nearest city</span><span class="ies-skel ies-skel--md"></span></div>
+              <div class="ies-pc-row"><span class="ies-pc-k">Median rent</span><span class="ies-skel ies-skel--sm"></span></div>
+            </div>
+            <div class="ies-preview-card">
+              <div class="ies-pc-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Healthcare &amp; Safety
+              </div>
+              <div class="ies-pc-row"><span class="ies-pc-k">Healthcare grade</span><span class="ies-skel ies-skel--sm"></span></div>
+              <div class="ies-pc-row"><span class="ies-pc-k">Crime rank</span><span class="ies-skel ies-skel--md"></span></div>
+            </div>
+            <div class="ies-preview-card">
+              <div class="ies-pc-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z"/></svg>
+                Education &amp; Nature
+              </div>
+              <div class="ies-pc-row"><span class="ies-pc-k">Education grade</span><span class="ies-skel ies-skel--sm"></span></div>
+              <div class="ies-pc-row"><span class="ies-pc-k">National parks</span><span class="ies-skel ies-skel--md"></span></div>
+            </div>
+          </div>
+          <div class="ies-preview-cta">Search a school above to fill this in</div>
+        </div>
+
       </div>
 
       <!-- Single school view -->
@@ -221,8 +302,6 @@ import { useExplorer } from '../composables/useExplorer.js'
 import { RC, GC } from '../data/db.js'
 import { toNum, stateLabelFromRecord } from '../utils/locationFields.js'
 
-defineEmits(['navigate'])
-
 function n(v) {
   // Handle nested metric objects like {value: "2.0", unit: "rank"}
   if (v !== null && v !== undefined && typeof v === 'object' && 'value' in v) {
@@ -241,6 +320,8 @@ function metricVal(school, key) {
   return nested
 }
 
+const emit = defineEmits(['navigate'])
+
 const {
   insSchool,
   sbsMode,
@@ -252,12 +333,26 @@ const {
   isCmp,
   compareSchools,
   searchSchoolsForDropdown,
+  launchView,
+  launchSort,
 } = useExplorer()
+
+function goExplorerSort(sort) {
+  launchSort.value = sort
+  launchView.value = 'search'
+  emit('navigate', 'explorer')
+}
 
 const insQ = ref('')
 const insResults = ref([])
 const insHighlight = ref(0)
+const searchInputEl = ref(null)
 let insSearchTimer
+
+function focusSearch() {
+  searchInputEl.value?.focus()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 function closeDropdown() {
   insResults.value = []
@@ -427,76 +522,219 @@ function bestIdx(vals, hi) {
 .ins-back-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-s); }
 
 .ins-empty {
-  max-width: 600px;
-  margin: 36px auto 0;
-}
-.ins-empty-prompt {
-  text-align: center;
-  margin-bottom: 28px;
-}
-.ins-empty-icon {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  opacity: 0.3;
-}
-.ins-empty-title {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--ink2);
-  margin-bottom: 6px;
-}
-.ins-empty-hints {
-  list-style: none;
-  padding: 0;
-  margin: 0 auto;
+  padding: 40px 0 60px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-width: 340px;
-  text-align: left;
+  gap: 40px;
 }
-.ins-empty-hints li {
-  font-size: 0.74rem;
-  color: var(--ink3);
-  padding-left: 14px;
-  position: relative;
-  line-height: 1.5;
+
+/* Hero */
+.ies-hero {
+  text-align: center;
 }
-.ins-empty-hints li::before {
-  content: '·';
-  position: absolute;
-  left: 0;
-  color: var(--ink3);
+.ies-h {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+.ies-sub {
+  font-size: 0.95rem;
+  color: var(--ink2);
+  margin-bottom: 20px;
+}
+.ies-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.ies-btn-primary {
+  padding: 10px 24px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 99px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.84rem;
   font-weight: 700;
+  cursor: pointer;
+  transition: background 0.14s;
 }
-.ins-explainers {
+.ies-btn-primary:hover { background: var(--blue-d, #1558c0); }
+.ies-btn-secondary {
+  padding: 10px 24px;
+  background: transparent;
+  color: var(--ink2);
+  border: 1.5px solid var(--b2);
+  border-radius: 99px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.14s;
+}
+.ies-btn-secondary:hover { border-color: var(--blue); color: var(--blue); }
+
+/* Goal cards */
+.ies-goals {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.ies-goal-card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 18px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
+}
+.ies-goal-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 6px 20px rgba(31,111,235,0.10);
+  transform: translateY(-2px);
+}
+.ies-goal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--blue-s);
+  color: var(--blue);
+  margin: 0 auto 10px;
+}
+.ies-goal-label { font-size: 0.84rem; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.ies-goal-sub { font-size: 0.71rem; color: var(--ink3); line-height: 1.4; }
+
+/* How it works */
+.ies-how {
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 22px 24px;
+}
+.ies-how-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 16px;
+}
+.ies-steps {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
-.ins-exp-card {
+.ies-step {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ies-step-n {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--blue-s);
+  color: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ies-step-text {
+  font-size: 0.78rem;
+  color: var(--ink2);
+  line-height: 1.5;
+  padding-top: 3px;
+}
+.ies-step-arrow {
+  color: var(--b2);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Scorecard preview */
+.ies-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ies-preview-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+.ies-preview-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.ies-preview-card {
   background: var(--s);
   border: 1px solid var(--b);
   border-radius: var(--r);
-  padding: 16px 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0.7;
 }
-.ins-exp-icon {
-  font-size: 1.3rem;
-  margin-bottom: 8px;
-}
-.ins-exp-title {
-  font-size: 0.78rem;
+.ies-pc-title {
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--ink);
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.ins-exp-desc {
-  font-size: 0.71rem;
+.ies-pc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.ies-pc-k {
+  font-size: 0.72rem;
   color: var(--ink3);
-  line-height: 1.6;
 }
-@media (max-width: 600px) {
-  .ins-explainers { grid-template-columns: 1fr; }
+.ies-pc-v {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.ies-skel {
+  display: inline-block;
+  height: 10px;
+  border-radius: 6px;
+  background: var(--b2);
+  opacity: 0.5;
+}
+.ies-skel--sm { width: 52px; }
+.ies-skel--md { width: 80px; }
+.ies-preview-cta {
+  text-align: center;
+  font-size: 0.74rem;
+  color: var(--ink3);
+  font-style: italic;
+}
+
+@media (max-width: 700px) {
+  .ies-goals { grid-template-columns: repeat(2, 1fr); }
+  .ies-preview-cards { grid-template-columns: 1fr; }
+  .ies-steps { flex-direction: column; }
+  .ies-step-arrow { transform: rotate(90deg); }
+  .ies-h { font-size: 1.5rem; }
 }
 
 .grade-legend {

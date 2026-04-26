@@ -214,7 +214,7 @@
         <div v-for="s in sortOpts" :key="s.v" class="sort-pill"
           :class="{ active: fSort === s.v }"
           @click="onSetSort(s.v)">
-          <span class="sort-icon">{{ s.icon }}</span>{{ s.label }}
+          <span class="sort-icon" v-html="s.svg"></span>{{ s.label }}
         </div>
       </div>
 
@@ -319,7 +319,7 @@
               <div class="gq-text">What matters most to you?</div>
               <div class="gq-opts">
                 <div v-for="opt in q3opts" :key="opt.title" class="gq-opt" :class="{ sel: gqAnswers[2] === opt.title }" @click="gqSel(2, opt.title)">
-                  <span class="gqo-emoji">{{ opt.emoji }}</span>
+                  <span class="gqo-icon" v-html="opt.svg"></span>
                   <div><div class="gqo-title">{{ opt.title }}</div><div class="gqo-sub">{{ opt.sub }}</div></div>
                   <span v-if="gqAnswers[2] === opt.title" class="gqo-check">✓</span>
                 </div>
@@ -329,7 +329,7 @@
                 <button class="gf-next" :class="{ ready: gqAnswers[2] !== null }" @click="gqFinish">Show my schools →</button>
               </div>
             </div>
-            <div v-else-if="guideStep === 3" class="guide-q" key="results">
+            <div v-else-if="guideStep === 3" class="guide-q guide-q--results" key="results">
               <div class="gq-label">
                 {{ guideLoading ? 'Loading…' : guideTotal + ' school' + (guideTotal !== 1 ? 's' : '') + ' matched' }}
               </div>
@@ -418,7 +418,7 @@ const {
   compareSchools, compareLoading, compareError,
   toggleCmp, clearCompare, isCmp,
   toggleRow, viewLifestyle,
-  heroTop,
+  heroTop, launchView, launchSort,
 } = useExplorer()
 
 const view        = ref('entry')
@@ -441,7 +441,6 @@ async function loadMapSchools() {
       ...normalizeLocationList(nsw.items),
     ].filter(s => s.annual_incentive > 0)
     mapSchools.value = all
-    console.log('map schools loaded:', all.length)
   } catch (e) {
     console.warn('loadMapSchools failed:', e)
     mapSchools.value = heroTop.value.filter(s => s.annual_incentive > 0)
@@ -525,6 +524,7 @@ function resetFilters() {
 watch(view, (v) => {
   if (v === 'search') {
     resetFilters()
+    if (launchSort.value) { setSort(launchSort.value); launchSort.value = null }
     nextTick(() => { searchInput.value?.focus(); loadSearchLocations(searchQ.value) })
   }
   if (v === 'entry')  nextTick(() => {
@@ -538,6 +538,11 @@ const showBackTop = ref(false)
 function onScroll() { showBackTop.value = window.scrollY > 400 }
 
 onMounted(() => {
+  if (launchView.value) {
+    view.value = launchView.value
+    launchView.value = null
+    loadSearchLocations('')
+  }
   nextTick(() => initMap())
   loadMapSchools()
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -635,11 +640,16 @@ function gqFinish() {
   loadGuideLocations()
 }
 
+const SVG_INC  = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`
+const SVG_HC   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`
+const SVG_DIST = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`
+const SVG_AZ   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`
+
 const sortOpts = [
-  { v: 'inc',  icon: '💰', label: 'Incentive' },
-  { v: 'hc',   icon: '🏥', label: 'Healthcare' },
-  { v: 'dist', icon: '📍', label: 'Distance' },
-  { v: 'az',   icon: '🔤', label: 'A–Z' },
+  { v: 'inc',  svg: SVG_INC,  label: 'Incentive' },
+  { v: 'hc',   svg: SVG_HC,   label: 'Healthcare' },
+  { v: 'dist', svg: SVG_DIST, label: 'Distance' },
+  { v: 'az',   svg: SVG_AZ,   label: 'A–Z' },
 ]
 const q1opts = [
   { title: 'Both states',     flag: new URL('../assets/flag-au.png',  import.meta.url).href, sub: 'Show QLD and NSW together' },
@@ -652,11 +662,16 @@ const q2opts = [
   { title: 'Very Remote',    emoji: '🌵', sub: '600+ km from nearest city · highest incentives on top of base' },
   { title: 'Open to all',    emoji: '✨', sub: 'Show me everything' },
 ]
+const SVG_INC_LG  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`
+const SVG_HC_LG   = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`
+const SVG_DIST_LG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`
+const SVG_NATURE  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 19.11a1 1 0 0 0 1.59 1.21C6.72 18.49 8 17 12 17h1c3 0 5-2 5-5s-2-5-5-5"/><line x1="3" y1="22" x2="12" y2="13"/></svg>`
+
 const q3opts = [
-  { title: 'Highest incentive', emoji: '💰', sub: 'Maximise my annual payment' },
-  { title: 'Healthcare access', emoji: '🏥', sub: 'Prioritise areas with more services' },
-  { title: 'Distance to city',  emoji: '📍', sub: 'Stay as close to a city as possible' },
-  { title: 'Nature & outdoors', emoji: '🌿', sub: 'Parks, reserves, wide open spaces' },
+  { title: 'Highest incentive', svg: SVG_INC_LG,  sub: 'Maximise my annual payment' },
+  { title: 'Healthcare access', svg: SVG_HC_LG,   sub: 'Prioritise areas with more services' },
+  { title: 'Distance to city',  svg: SVG_DIST_LG, sub: 'Stay as close to a city as possible' },
+  { title: 'Nature & outdoors', svg: SVG_NATURE,  sub: 'Parks, reserves, wide open spaces' },
 ]
 </script>
 
@@ -773,9 +788,7 @@ const q3opts = [
 .back-row:hover { color: var(--blue-d); }
 
 .exp-entry {
-  padding:16px 16px 0;
-  max-width:1200px;
-  margin:0 auto;
+  padding:16px 140px 0;
 }
 
 .exp-entry-h {
@@ -1039,9 +1052,7 @@ const q3opts = [
 
 .search-path,
 .guide-path {
-  max-width:1200px;
-  margin:0 auto;
-  padding: 8px 16px 32px;
+  padding: 8px 160px 32px;
 }
 
 .srch-row {
@@ -1153,8 +1164,14 @@ const q3opts = [
   color: var(--blue-d);
 }
 
-.fp-tile-icon,
-.sort-icon { font-size:0.9rem; }
+.fp-tile-icon { font-size:0.9rem; }
+.sort-icon {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  color: inherit;
+}
 
 .sort-row {
   display:flex;
@@ -1285,6 +1302,13 @@ const q3opts = [
   border-radius:18px;
 }
 
+.guide-q--results {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
 .gq-label {
   font-size:0.76rem;
   font-weight:800;
@@ -1336,7 +1360,18 @@ const q3opts = [
 }
 
 .gqo-state-img img { width:100%; height:100%; object-fit:cover; display:block; }
-.gqo-emoji { font-size:1.5rem; flex-shrink:0; }
+.gqo-icon {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  background:var(--blue-s);
+  color:var(--blue);
+  flex-shrink:0;
+}
+.gq-opt.sel .gqo-icon { background:rgba(31,111,235,0.15); color:var(--blue); }
 .gqo-title { font-weight:700; font-size:0.92rem; color: var(--ink); }
 .gqo-sub { font-size:0.76rem; margin-top:2px; }
 .gqo-check { position:absolute; right:14px; color:var(--blue); font-weight:800; font-size:1rem; }

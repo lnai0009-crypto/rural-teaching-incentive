@@ -42,8 +42,12 @@
             </div>
             <div class="why-label">Financial</div>
             <h3 class="why-title">A real pay difference</h3>
-            <p class="why-body">State incentive programs add up to $30,000 per year on top of your base salary. That figure is documented, verified, and shown in the Explorer tab. It is not a promise of long-term reward instead it is cash in your pay cycle while you are there.</p>
-            <p class="why-caveat">It does not guarantee you will want to stay. But it does change what your first few years look like financially.</p>
+            <ul class="why-body">
+              <li>Up to $30,000/yr on top of base salary</li>
+              <li>Documented, verified, shown in Explorer</li>
+              <li>Paid each pay cycle, not deferred</li>
+            </ul>
+            <p class="why-caveat">Changes what your first few years look like financially.</p>
           </div>
 
           <div class="why-card why-cost">
@@ -52,8 +56,11 @@
             </div>
             <div class="why-label">Cost of living</div>
             <h3 class="why-title">Your salary stretches further</h3>
-            <p class="why-body">Median weekly rent in regional QLD and NSW is substantially lower than in Sydney or Brisbane. ABS Census data backs this up. A teacher salary that feels tight in a capital city often has real breathing room in a regional town.</p>
-            <p class="why-caveat">Some goods cost more and services are fewer. The net position depends on your lifestyle, but housing is genuinely cheaper.</p>
+            <ul class="why-body">
+              <li>Median rent far lower than Sydney or Brisbane (ABS data)</li>
+              <li>City salaries feel tight; regionally they breathe</li>
+            </ul>
+            <p class="why-caveat">Some goods cost more, services are fewer. Housing is cheaper.</p>
           </div>
 
           <div class="why-card why-career">
@@ -62,8 +69,11 @@
             </div>
             <div class="why-label">Career pace</div>
             <h3 class="why-title">Smaller schools, broader role</h3>
-            <p class="why-body">Rural schools are structurally smaller. Teachers take on leadership, cross-curriculum, and mentoring responsibilities earlier than they typically would in a larger metro school. That is not spin — it is a direct result of how small schools are staffed.</p>
-            <p class="why-caveat">A broader role is only an advantage if that is what you want. For some teachers, it is the appeal. For others, it is the concern.</p>
+            <ul class="why-body">
+              <li>Leadership and mentoring responsibilities come earlier</li>
+              <li>Small school staffing makes this structural, not incidental</li>
+            </ul>
+            <p class="why-caveat">For some, the appeal. For others, the concern.</p>
           </div>
 
           <div class="why-card why-community">
@@ -72,8 +82,12 @@
             </div>
             <div class="why-label">Community</div>
             <h3 class="why-title">You are not anonymous</h3>
-            <p class="why-body">In a small regional town, teachers are known figures. Families recognise you at the shops. Your presence in the school is felt more directly. The relationship between school and community is tighter than in most metro settings.</p>
-            <p class="why-caveat">That visibility suits some people and not others. It is worth knowing before you go, not after.</p>
+            <ul class="why-body">
+              <li>Families recognise you outside school</li>
+              <li>Tighter school-community bond than metro</li>
+              <li>Your presence is felt directly</li>
+            </ul>
+            <p class="why-caveat">That visibility suits some, not others. Worth knowing before you go.</p>
           </div>
 
         </div>
@@ -475,13 +489,13 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 .hstat-sep { width: 1px; height: 40px; background: rgba(255,255,255,0.12); }
 
 /* WHY REGIONAL */
-.why-section { background: var(--s); padding: 52px 24px; border-bottom: 1px solid var(--b); }
+.why-section { background: var(--s); padding: 32px 24px; border-bottom: 1px solid var(--b); }
 .why-inner { max-width: 1200px; margin: 0 auto; }
-.why-inner h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; line-height: 1.12; margin-bottom: 8px; }
-.why-inner > .section-header { margin-bottom: 28px; }
-.why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 28px; }
+.why-inner h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; line-height: 1.12; margin-bottom: 6px; }
+.why-inner > .section-header { margin-bottom: 16px; }
+.why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
 
-.why-card { background: var(--bg); border: 1px solid var(--b); border-radius: 14px; padding: 22px 24px; display: flex; flex-direction: column; gap: 7px; transition: box-shadow 0.18s; }
+.why-card { background: var(--bg); border: 1px solid var(--b); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 5px; transition: box-shadow 0.18s; }
 .why-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.07); }
 
 .why-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; flex-shrink: 0; }
@@ -498,7 +512,9 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 .why-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 900; color: var(--ink); line-height: 1.2; margin-bottom: 2px; }
 .why-body { font-size: 0.83rem; color: var(--ink2); line-height: 1.68; }
-.why-caveat { font-size: 0.78rem; color: var(--ink3); line-height: 1.6; font-style: italic; border-top: 1px solid var(--b); padding-top: 8px; margin-top: 2px; }
+.why-body li { padding-left: 0.25rem; margin-bottom: 4px; }
+.why-body { padding-left: 1.1rem; margin: 0 0 8px 0; }
+.why-caveat { font-size: 0.76rem; color: var(--ink3); line-height: 1.5; font-style: italic; border-top: 1px solid var(--b); padding-top: 6px; margin-top: 2px; }
 
 /* TOP AREAS */
 /* SNAPSHOT */
@@ -668,7 +684,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   .hero-stats-bar { padding: 22px 24px; flex-wrap: wrap; gap: 16px; }
   .hstat { min-width: 100px; }
   .hstat-sep { display: none; }
-  .why-section { padding: 52px 24px; }
+  .why-section { padding: 28px 16px; }
   .why-grid { grid-template-columns: 1fr; gap: 16px; }
   .snapshot { padding: 52px 0; }
   .snapshot-inner { padding: 0 24px; }
